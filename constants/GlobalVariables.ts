@@ -1,0 +1,1 @@
+export const baseURL: String = "https://example.com";
