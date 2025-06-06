@@ -1,6 +1,6 @@
 import { Image } from 'expo-image';
 import * as SecureStore from 'expo-secure-store';
-import { Linking, StyleSheet, TouchableHighlight, TouchableOpacity } from 'react-native';
+import { Linking, StyleSheet, Text, TextInput, TouchableHighlight, TouchableOpacity, useColorScheme } from 'react-native';
 
 import { ExternalLink } from '@/components/ExternalLink';
 import ParallaxScrollView from '@/components/ParallaxScrollView';
@@ -8,8 +8,12 @@ import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
 import { IconSymbol } from '@/components/ui/IconSymbol';
 
-import { useEffect, useState } from 'react';
-import LoginSheet from '../Loginscreen';
+import {
+  BottomSheetModal,
+  BottomSheetView
+} from '@gorhom/bottom-sheet';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+
 
 async function save(key: string, value: any) {
   await SecureStore.setItemAsync(key, value);
@@ -68,6 +72,74 @@ type AccountDetails = {
   email: string;
   linkedin: string;
 };
+
+const Page = () => {
+    const snapPoints = useMemo(() => ['70%'], []);
+}
+
+export function LoginMessage() {
+    const bottomSheetModalRef = useRef<BottomSheetModal>(null);
+
+    const handlePresentModalPress = useCallback(() => {
+      bottomSheetModalRef.current?.present();
+    }, []);
+    const handleSheetChanges = useCallback((index: number) => {
+      console.log('handleSheetChanges', index);
+    }, []);
+
+    const colorScheme = useColorScheme();
+    const snapPoints = useMemo(() => ['90%'], []);
+
+  return (
+    <ThemedView>
+      <ThemedView style={styles.VStack}>
+        <ThemedText type="title">Niet ingelogd!</ThemedText>
+        <ThemedText>
+          U bent momenteel niet ingelogd. Log in om de volledige featureset van deze app te gebruiken.
+        </ThemedText>
+
+        <TouchableOpacity
+          style={[styles.button, { marginTop: 20 }]}
+          onPress={handlePresentModalPress}
+          accessibilityLabel="Login button"
+        >
+          <ThemedText style={styles.buttonText}>Inloggen</ThemedText>
+        </TouchableOpacity>
+
+        <TouchableOpacity style={styles.button} accessibilityLabel="Register button">
+          <ThemedText style={styles.buttonText}>Registreren</ThemedText>
+        </TouchableOpacity>
+      </ThemedView>
+
+      <BottomSheetModal
+      ref={bottomSheetModalRef}
+      index={1}
+      onChange={handleSheetChanges}
+      snapPoints={snapPoints}
+      backgroundStyle={{ backgroundColor: colorScheme === 'dark' ? '#151718' : '#FFFFFF' }}
+      handleIndicatorStyle={{ backgroundColor: 'gray' }}
+    >
+      <BottomSheetView style={[
+        styles.contentContainer,
+        { backgroundColor: colorScheme === 'dark' ? '#151718' : '#FFFFFF' },
+        sheets.confirmPadding
+      ]}>
+        <ThemedView>
+          <ThemedText type="title">Log in</ThemedText>
+          <ThemedText>Join the network by logging in.</ThemedText>
+
+          <TextInput
+            style={sheets.input}
+            placeholder="useless placeholder"
+            keyboardType="numeric"
+          />
+        </ThemedView>
+      </BottomSheetView>
+    </BottomSheetModal>
+
+    </ThemedView>
+  );
+}
 
 export function AccountDetails({ voornaam, achternaam, pfp, email, linkedin }: AccountDetails) {
   return(
@@ -169,7 +241,7 @@ export default function AccountScreen() {
       {loggedIn ? (
         <AccountDetails voornaam={voornaam} achternaam={achternaam} email={email} pfp={pfp} linkedin={linkedin} />
       ) : (
-        <LoginSheet onLoginSuccess={() => isLoggedIn(true)} />
+        <LoginMessage />
       )}
 
       
@@ -187,6 +259,20 @@ export default function AccountScreen() {
     </ParallaxScrollView> 
   );
 }
+
+const sheets = StyleSheet.create({
+  confirmPadding:{
+    padding: 30
+  },
+  input: {
+    height: 60,
+    margin: 10,
+    width: 350,
+    borderWidth: 1,
+    padding: 15,
+    borderRadius: 10
+  },
+})
 
 const styles = StyleSheet.create({
   headerImage: {
@@ -282,5 +368,27 @@ const styles = StyleSheet.create({
     color: '#8e8e93',
     backgroundColor: 'transparent'
   },
-
+  button: {
+    backgroundColor: '#3b82f6', // blue-ish background
+    borderRadius: 10,
+    paddingVertical: 15,   // makes button taller
+    paddingHorizontal: 40, // makes button wider
+    marginVertical: 10,
+    alignItems: 'center',
+  },
+  buttonText: {
+    color: 'white',
+    fontSize: 18, // larger text
+    fontWeight: '600',
+  },
+  container: {
+    flex: 1,
+    padding: 24,
+    justifyContent: 'center',
+    backgroundColor: 'grey',
+  },
+  contentContainer: {
+    flex: 1,
+    alignItems: 'center',
+  }
 });
