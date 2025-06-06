@@ -1,4 +1,5 @@
 import { Image } from 'expo-image';
+import * as SecureStore from 'expo-secure-store';
 import { Linking, StyleSheet, TouchableHighlight, TouchableOpacity } from 'react-native';
 
 import { ExternalLink } from '@/components/ExternalLink';
@@ -8,10 +9,26 @@ import { ThemedView } from '@/components/ThemedView';
 import { IconSymbol } from '@/components/ui/IconSymbol';
 
 import { useEffect, useState } from 'react';
+import LoginSheet from '../Loginscreen';
+
+async function save(key: string, value: any) {
+  await SecureStore.setItemAsync(key, value);
+}
+
+async function getKeyValueStore(key: string, defaultval: any) {
+  let result = await SecureStore.getItemAsync(key);
+  if (result) {
+    return result;
+  } else {
+    save(key,defaultval);
+    result = await SecureStore.getItemAsync(key);
+    return result
+  }
+}
 
 const getStudentInfo = async () => {
   try {
-    const response = await fetch('http://10.2.89.35:3001/studenten/0', {
+    const response = await fetch('https://api.ehb-match.me//studenten/0', {
       method: 'GET',
       headers: {
         Accept: 'application/json',
@@ -44,40 +61,17 @@ const openLinkedInProfile = async (username: String) => {
   }
 };
 
+type AccountDetails = {
+  voornaam: string;
+  achternaam: string;
+  pfp: string;
+  email: string;
+  linkedin: string;
+};
 
-export default function AccountScreen() {
-  useEffect(() => {
-    const fetchStudent = async () => {
-      const student = await getStudentInfo();
-      if (student) {
-        setVoornaam(student["voornaam"]);
-        setAchternaam(student["achternaam"]);
-        setEmail(student["email"]);
-        setPfp(student["profielfoto"]);
-        setLinkedin(student["linkedin"]);
-      }
-    };
-
-    fetchStudent();
-  }, []);
-
-  const [voornaam, setVoornaam] = useState('');
-  const [achternaam, setAchternaam] = useState('');
-  const [email, setEmail] = useState('');
-  const [pfp, setPfp] = useState('');
-  const [linkedin, setLinkedin] = useState('');
-
-  return (
-    <ParallaxScrollView
-      headerBackgroundColor={{ light: '#D0D0D0', dark: '#353636' }}
-      headerImage={
-        <IconSymbol
-          size={310}
-          color="#808080"
-          name='person.fill'
-          style={styles.headerImage}
-        />
-      }>
+export function AccountDetails({ voornaam, achternaam, pfp, email, linkedin }: AccountDetails) {
+  return(
+    <ThemedView>
       <ThemedView style={styles.titleContainer}>
         <TouchableHighlight>
           <Image source={{ uri: pfp }} style={styles.profileImg} />
@@ -120,6 +114,64 @@ export default function AccountScreen() {
           </ThemedView>
         </TouchableOpacity>
       </ThemedView>
+    </ThemedView>
+  );
+}
+
+
+export default function AccountScreen() {
+
+  useEffect(() => {
+    const fetchStudent = async () => {
+      const student = await getStudentInfo();
+      if (student) {
+        setVoornaam(student["voornaam"]);
+        setAchternaam(student["achternaam"]);
+        setEmail(student["email"]);
+        setPfp(student["profielfoto"]);
+        setLinkedin(student["linkedin"]);
+      }
+    };
+
+    const checkTokenAvailability = async () => {
+      const Token = await getKeyValueStore("Token", "WholeLoadaShit")
+      if(Token == "WholeLoadaShit"){
+        isLoggedIn(false);
+      }
+    }
+
+    fetchStudent();
+    checkTokenAvailability();
+  }, []);
+
+  const [voornaam, setVoornaam] = useState('');
+  const [achternaam, setAchternaam] = useState('');
+  const [email, setEmail] = useState('');
+  const [pfp, setPfp] = useState('');
+  const [linkedin, setLinkedin] = useState('');
+
+  const [loggedIn, isLoggedIn] = useState(false); //Switch naar true als de gebruiker effectief ingelogd is.
+
+  if(loggedIn == false){
+      
+  }
+  return (
+    <ParallaxScrollView
+      headerBackgroundColor={{ light: '#D0D0D0', dark: '#353636' }}
+      headerImage={
+        <IconSymbol
+          size={310}
+          color="#808080"
+          name='person.fill'
+          style={styles.headerImage}
+        />
+      }>
+      {loggedIn ? (
+        <AccountDetails voornaam={voornaam} achternaam={achternaam} email={email} pfp={pfp} linkedin={linkedin} />
+      ) : (
+        <LoginSheet onLoginSuccess={() => isLoggedIn(true)} />
+      )}
+
       
       <ThemedText style={{ textAlign: 'center', fontSize: 15, opacity: 0.9 }}>
         Onze{' '}
