@@ -26,7 +26,7 @@ export default function LoginSheet({ onLoginSuccess }: LoginSheetProps) {
       snapPoints={snapPoints}
       enablePanDownToClose={false}
       handleComponent={null}
-      backgroundStyle={{ backgroundColor: 'black' }}
+      backgroundStyle={{ backgroundColor: 'green' }}
     >
       <View style={styles.content}>
         <Text style={styles.text}>Please log in</Text>
