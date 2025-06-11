@@ -1,6 +1,7 @@
 import { Image } from 'expo-image';
 import * as SecureStore from 'expo-secure-store';
-import { Linking, StyleSheet, Text, TextInput, TouchableHighlight, TouchableOpacity, useColorScheme } from 'react-native';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { Linking, StyleSheet, TextInput, TouchableHighlight, TouchableOpacity, useColorScheme } from 'react-native';
 
 import { ExternalLink } from '@/components/ExternalLink';
 import ParallaxScrollView from '@/components/ParallaxScrollView';
@@ -12,31 +13,35 @@ import {
   BottomSheetModal,
   BottomSheetView
 } from '@gorhom/bottom-sheet';
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
 
 async function save(key: string, value: any) {
-  await SecureStore.setItemAsync(key, value);
+  await SecureStore.setItemAsync(key, JSON.stringify(value));
 }
 
 async function getKeyValueStore(key: string, defaultval: any) {
-  let result = await SecureStore.getItemAsync(key);
-  if (result) {
-    return result;
-  } else {
-    save(key,defaultval);
-    result = await SecureStore.getItemAsync(key);
-    return result
+  try {
+    const result = await SecureStore.getItemAsync(key);
+    if (result) {
+      return JSON.parse(result);
+    } else {
+      await save(key, defaultval);
+      return defaultval;
+    }
+  } catch (error) {
+    console.error('Error retrieving from SecureStore:', error);
+    return defaultval;
   }
-}
+} 
+
 
 const getStudentInfo = async () => {
   try {
-    const response = await fetch('https://api.ehb-match.me//studenten/0', {
+    const response = await fetch('https://api.ehb-match.me/auth/info', {
       method: 'GET',
       headers: {
         Accept: 'application/json',
-        Authorization: 'Bearer 1234',
+        Authorization: "Bearer " + await ValidateToken()
       },
     });
 
@@ -77,7 +82,7 @@ const Page = () => {
     const snapPoints = useMemo(() => ['70%'], []);
 }
 
-export function LoginMessage() {
+function LoginMessage() {
     const bottomSheetModalRef = useRef<BottomSheetModal>(null);
 
     const handlePresentModalPress = useCallback(() => {
@@ -87,8 +92,60 @@ export function LoginMessage() {
       console.log('handleSheetChanges', index);
     }, []);
 
-    const colorScheme = useColorScheme();
-    const snapPoints = useMemo(() => ['90%'], []);
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+
+  const [isLoading, setIsLoading] = useState(false);
+  const [message, setMessage] = useState('');
+
+  const StartAuth = async () => {
+    setIsLoading(true);
+    setMessage('');
+
+    fetch('https://api.ehb-match.me/auth/login', {
+      method: 'POST',
+      headers: {
+        'Accept': 'application/json',
+        'Content-Type': 'application/json',
+        'User-Agent': 'EhBMatch/Mobile',
+      },
+      body: JSON.stringify({
+        email: email,
+        password: password
+      }),
+    })
+    .then(response => {
+      if (!response.ok) {
+        setIsLoading(false);
+        setMessage("Login gegevens incorrect.")
+      }
+      return response.json();
+    })
+    .then(async data => {
+      setIsLoading(false);
+      console.log('Parsed response:', data);
+      const unixAccessToken = Math.floor(new Date(data["accessTokenExpiresAt"]).getTime() / 1000);
+      const unixRefreshToken = Math.floor(new Date(data["refreshTokenExpiresAt"]).getTime() / 1000);
+
+      save("Token", {
+        "accessToken": data["accessToken"],
+        "accessTokenExpiration": unixAccessToken,
+
+        "refreshToken": data["refreshToken"],
+        "refreshTokenExpiration": unixRefreshToken
+      })
+
+      const tokenData = await getKeyValueStore("Token", "{}");
+      console.log('Retrieved token data:', tokenData);
+    })
+    .catch(error => {
+      console.error('Fetch error:', error);
+    });
+  };
+
+  const colorScheme = useColorScheme();
+  const snapPoints = useMemo(() => ['90%'], []);
+    
 
   return (
     <ThemedView>
@@ -116,23 +173,51 @@ export function LoginMessage() {
       index={1}
       onChange={handleSheetChanges}
       snapPoints={snapPoints}
-      backgroundStyle={{ backgroundColor: colorScheme === 'dark' ? '#151718' : '#FFFFFF' }}
+      backgroundStyle={{ backgroundColor: colorScheme === 'dark' ? '#23201E' : '#F1EFEB' }}
       handleIndicatorStyle={{ backgroundColor: 'gray' }}
     >
       <BottomSheetView style={[
         styles.contentContainer,
-        { backgroundColor: colorScheme === 'dark' ? '#151718' : '#FFFFFF' },
+        { backgroundColor: colorScheme === 'dark' ? '#23201E' : '#F1EFEB' },
         sheets.confirmPadding
       ]}>
-        <ThemedView>
+        <ThemedView style={{ backgroundColor: colorScheme === 'dark' ? '#23201E' : '#F1EFEB' }}>
           <ThemedText type="title">Log in</ThemedText>
           <ThemedText>Join the network by logging in.</ThemedText>
 
           <TextInput
-            style={sheets.input}
-            placeholder="useless placeholder"
-            keyboardType="numeric"
+            style={[sheets.input, {backgroundColor: '#F1EFEB'}]}
+            placeholder="E-Mail"
+            keyboardType="email-address"
+            autoComplete="email"
+            value={email}
+            onChangeText={setEmail}
           />
+
+          <TextInput
+            style={[sheets.input, {backgroundColor: '#F1EFEB'}]}
+            placeholder="Password"
+            keyboardType="email-address"
+            secureTextEntry={true}
+            autoComplete="current-password"
+            value={password}
+            onChangeText={setPassword}
+          />
+
+          <TouchableOpacity
+            style={[styles.button, { marginTop: 20, marginHorizontal: 10 }]}
+            onPress={StartAuth}
+            accessibilityLabel="Login button"
+          >
+            <ThemedText style={styles.buttonText}>
+              {isLoading ? "Logging in..." : "Inloggen"}
+            </ThemedText>      
+          </TouchableOpacity>
+
+          <ThemedText style={styles.buttonText}>
+            {message}
+          </ThemedText> 
+
         </ThemedView>
       </BottomSheetView>
     </BottomSheetModal>
@@ -142,6 +227,10 @@ export function LoginMessage() {
 }
 
 export function AccountDetails({ voornaam, achternaam, pfp, email, linkedin }: AccountDetails) {
+  const logOut = async () => {
+    console.log("Uitloggen...")
+    save("Token", "WholeLoadaShit");
+  }
   return(
     <ThemedView>
       <ThemedView style={styles.titleContainer}>
@@ -185,16 +274,102 @@ export function AccountDetails({ voornaam, achternaam, pfp, email, linkedin }: A
             <ThemedText style={styles.sectionValue}>Nee</ThemedText>
           </ThemedView>
         </TouchableOpacity>
+
+        <ThemedView>
+          <TouchableOpacity
+            style={[styles.button, { marginTop: 20 }]}
+            onPress={logOut}
+            accessibilityLabel="Uitlog knop"
+          >
+            <ThemedText style={styles.buttonText}>Uitloggen</ThemedText>
+          </TouchableOpacity>
+          </ThemedView>
       </ThemedView>
     </ThemedView>
   );
 }
 
+export async function ValidateToken() {
+  console.log("Starting Verification...")
+  const key = await getKeyValueStore("Token", "WholeLoadaShit");
+  const unixTime = Math.floor(new Date().getTime() / 1000);
+
+  if (key["accessTokenExpiration"] > unixTime) {
+    console.log(`Verification Complete: ${key["accessToken"]}`)
+    return key["accessToken"];
+  } else if (key["accessTokenExpiration"] < unixTime) {
+    try {
+      console.log(key["refreshToken"]);
+      const response = await fetch('https://api.ehb-match.me/auth/refresh', {
+        method: 'POST',
+        headers: {
+          'Accept': 'application/json',
+          'Content-Type': 'application/json',
+          'Cookie': `refreshToken=${key["refreshToken"]}`,
+        },
+        body: JSON.stringify({
+          
+        }),
+      });
+
+      if (!response.ok) {
+        console.error(`HTTP error! status: ${response.status}`);
+      }
+
+      const data = await response.json();
+      console.log('Parsed response:', data);
+      
+      const unixAccessToken = Math.floor(new Date(data["accessTokenExpiresAt"]).getTime() / 1000);
+      const unixRefreshToken = Math.floor(new Date(key["refreshTokenExpiresAt"]).getTime() / 1000);
+
+      await save("Token", {
+        "accessToken": data["accessToken"],
+        "accessTokenExpiration": unixAccessToken,
+        "refreshToken": key["refreshToken"],
+        "refreshTokenExpiration": unixRefreshToken
+      });
+
+      const tokenData = await getKeyValueStore("Token", "{}");
+      
+      console.log(`Verification Complete: ${tokenData["accessToken"]}`)
+      return tokenData["accessToken"];
+      
+    } catch (error) {
+      console.error('Error refreshing token:', error);
+      throw error;
+    }
+  }else if (key["refreshTokenExpiration"] < unixTime) {
+    console.log("Token is reset. Please log in again.");
+    await save("Token", "WholeLoadaShit");
+  }
+}
 
 export default function AccountScreen() {
-
+  
+const useTokenListener = () => {
+  const [token, setToken] = useState(null);
+  
   useEffect(() => {
-    const fetchStudent = async () => {
+    const checkToken = async () => {
+      const currentToken = await getKeyValueStore("Token", "WholeLoadaShit");
+      setToken(currentToken);
+    };
+    
+    checkToken();
+    const interval = setInterval(checkToken, 1000); // Check every second
+    
+    return () => clearInterval(interval);
+  }, []);
+  
+  return token;
+};
+
+const token = useTokenListener();
+const [studentFetched, setStudentFetched] = useState(false);
+
+useEffect(() => {
+  const fetchStudent = async () => {
+    try {
       const student = await getStudentInfo();
       if (student) {
         setVoornaam(student["voornaam"]);
@@ -202,19 +377,28 @@ export default function AccountScreen() {
         setEmail(student["email"]);
         setPfp(student["profielfoto"]);
         setLinkedin(student["linkedin"]);
+        setStudentFetched(true);
       }
-    };
+    } catch (error) {
+      console.error('Error fetching student:', error);
+    }
+  };
 
-    const checkTokenAvailability = async () => {
-      const Token = await getKeyValueStore("Token", "WholeLoadaShit")
-      if(Token == "WholeLoadaShit"){
-        isLoggedIn(false);
+  const checkTokenAvailability = async () => {
+    if (token == "WholeLoadaShit") {
+      isLoggedIn(false);
+    } else {
+      isLoggedIn(true);
+      if (!studentFetched) {
+        await fetchStudent();
       }
     }
+  };
 
-    fetchStudent();
+  if (token !== null) {
     checkTokenAvailability();
-  }, []);
+  }
+}, [token, studentFetched]);
 
   const [voornaam, setVoornaam] = useState('');
   const [achternaam, setAchternaam] = useState('');
