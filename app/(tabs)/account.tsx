@@ -50,6 +50,7 @@ const getStudentInfo = async () => {
     }
 
     const data = await response.json();
+    console.log(data)
     return data;
   } catch (error) {
     console.error('Failed to fetch student info:', error);
@@ -58,8 +59,8 @@ const getStudentInfo = async () => {
 };
 
 const openLinkedInProfile = async (username: String) => {
-  const appUrl = 'linkedin://in' + username; // This may not always work
-  const webUrl = 'https://www.linkedin.com/in' + username;
+  const appUrl = 'linkedin://in/' + username; // Only opens if the app is already installed on the device
+  const webUrl = 'https://www.linkedin.com/in/' + username;
 
   const supported = await Linking.canOpenURL(appUrl);
 
@@ -76,6 +77,10 @@ type AccountDetails = {
   pfp: string;
   email: string;
   linkedin: string;
+  DoB: string;
+  opleiding: string;
+  studiejaar: string;
+  type: string
 };
 
 const Page = () => {
@@ -145,7 +150,6 @@ function LoginMessage() {
 
   const colorScheme = useColorScheme();
   const snapPoints = useMemo(() => ['90%'], []);
-    
 
   return (
     <ThemedView>
@@ -226,11 +230,26 @@ function LoginMessage() {
   );
 }
 
-export function AccountDetails({ voornaam, achternaam, pfp, email, linkedin }: AccountDetails) {
+export function AccountDetails({ voornaam, achternaam, pfp, email, linkedin, DoB, opleiding, studiejaar, type }: AccountDetails) {
+  console.log("Account Details rendered.")
+
   const logOut = async () => {
     console.log("Uitloggen...")
     save("Token", "WholeLoadaShit");
   }
+
+  const formattedDate = new Date(DoB).toLocaleDateString('nl-BE');
+
+  const typeProfiel = async () => {
+    switch(type){
+      case "student":
+        return "Student"
+
+      case "bedrijf":
+        return "Bedrijf"
+    }
+  }
+
   return(
     <ThemedView>
       <ThemedView style={styles.titleContainer}>
@@ -241,7 +260,7 @@ export function AccountDetails({ voornaam, achternaam, pfp, email, linkedin }: A
         <ThemedView style={styles.VStack}>
           <ThemedText type="title">{voornaam} {achternaam}</ThemedText>
           <ThemedText>Erasmus Hogeschool Brussel</ThemedText>
-          <ThemedText style={{opacity: 0.5}}>Student • 1TI</ThemedText>
+          <ThemedText style={{opacity: 0.5}}>{typeProfiel()} • {opleiding} {studiejaar}</ThemedText>
         </ThemedView>
       </ThemedView>
 
@@ -251,7 +270,7 @@ export function AccountDetails({ voornaam, achternaam, pfp, email, linkedin }: A
             <IconSymbol name="figure.child" color="#8e8e93" style={styles.icon} />
             <ThemedText style={styles.sectionText}>Geboortedatum</ThemedText>
           </ThemedView>
-          <ThemedText style={styles.sectionValue}>18/03/2005</ThemedText>
+          <ThemedText style={styles.sectionValue}>{formattedDate}</ThemedText>
         </ThemedView>
 
         <ThemedView style={styles.sectionRow}>
@@ -344,73 +363,90 @@ export async function ValidateToken() {
   }
 }
 
-export default function AccountScreen() {
-  
 const useTokenListener = () => {
-  const [token, setToken] = useState(null);
-  
+  const [token, setToken] = useState<string | null>(null);
+
   useEffect(() => {
+    let isMounted = true;
+
     const checkToken = async () => {
       const currentToken = await getKeyValueStore("Token", "WholeLoadaShit");
-      setToken(currentToken);
+      setToken(prev => {
+        if (JSON.stringify(prev) !== JSON.stringify(currentToken)) {
+          return currentToken;
+        }
+        return prev;
+      });
     };
-    
+
     checkToken();
-    const interval = setInterval(checkToken, 1000); // Check every second
-    
-    return () => clearInterval(interval);
+    const interval = setInterval(() => {
+      if (isMounted) checkToken();
+    }, 1000);
+
+    return () => {
+      isMounted = false;
+      clearInterval(interval);
+    };
   }, []);
-  
+
   return token;
 };
 
-const token = useTokenListener();
-const [studentFetched, setStudentFetched] = useState(false);
+export default function AccountScreen() {
+  console.log("Account Screen rendered.")
 
-useEffect(() => {
-  const fetchStudent = async () => {
-    try {
-      const student = await getStudentInfo();
-      if (student) {
-        setVoornaam(student["voornaam"]);
-        setAchternaam(student["achternaam"]);
-        setEmail(student["email"]);
-        setPfp(student["profielfoto"]);
-        setLinkedin(student["linkedin"]);
-        setStudentFetched(true);
-      }
-    } catch (error) {
-      console.error('Error fetching student:', error);
-    }
-  };
-
-  const checkTokenAvailability = async () => {
-    if (token == "WholeLoadaShit") {
-      isLoggedIn(false);
-    } else {
-      isLoggedIn(true);
-      if (!studentFetched) {
-        await fetchStudent();
-      }
-    }
-  };
-
-  if (token !== null) {
-    checkTokenAvailability();
-  }
-}, [token, studentFetched]);
+  const token = useTokenListener();
 
   const [voornaam, setVoornaam] = useState('');
   const [achternaam, setAchternaam] = useState('');
   const [email, setEmail] = useState('');
   const [pfp, setPfp] = useState('');
   const [linkedin, setLinkedin] = useState('');
+  const [DoB, setDoB] = useState('');
+  const [opleiding, setOpleiding] = useState('');
+  const [studiejaar, setStudiejaar] = useState('');
+  const [typeProfiel, setProfielType] = useState('');
+  const [loggedIn, isLoggedIn] = useState(false);
+  const [studentFetched, setStudentFetched] = useState(false);
 
-  const [loggedIn, isLoggedIn] = useState(false); //Switch naar true als de gebruiker effectief ingelogd is.
+  useEffect(() => {
+    const fetchStudent = async () => {
+      try {
+        const student = await getStudentInfo();
+        if (student) {
+          setVoornaam(student["voornaam"]);
+          setAchternaam(student["achternaam"]);
+          setEmail(student["email"]);
+          setPfp(student["profielfoto"]);
+          setLinkedin(student["linkedin"]);
+          setDoB(student["date_of_birth"]);
+          setOpleiding(student["opleiding"]);
+          setStudiejaar(student["studiejaar"]);
+          setProfielType(student["type"]);
+          setStudentFetched(true);
+        }
+      } catch (error) {
+        console.error('Error fetching student:', error);
+      }
+    };
 
-  if(loggedIn == false){
-      
-  }
+    const checkTokenAvailability = async () => {
+      if (token === "WholeLoadaShit") {
+        isLoggedIn(false);
+      } else {
+        isLoggedIn(true);
+        if (!studentFetched) {
+          await fetchStudent();
+        }
+      }
+    };
+
+    if (token !== null) {
+      checkTokenAvailability();
+    }
+  }, [token, studentFetched]);
+
   return (
     <ParallaxScrollView
       headerBackgroundColor={{ light: '#D0D0D0', dark: '#353636' }}
@@ -423,12 +459,21 @@ useEffect(() => {
         />
       }>
       {loggedIn ? (
-        <AccountDetails voornaam={voornaam} achternaam={achternaam} email={email} pfp={pfp} linkedin={linkedin} />
+        <AccountDetails
+          voornaam={voornaam}
+          achternaam={achternaam}
+          email={email}
+          pfp={pfp}
+          linkedin={linkedin}
+          DoB={DoB}
+          opleiding={opleiding}
+          studiejaar={studiejaar}
+          type={typeProfiel}
+        />
       ) : (
         <LoginMessage />
       )}
 
-      
       <ThemedText style={{ textAlign: 'center', fontSize: 15, opacity: 0.9 }}>
         Onze{' '}
         <ExternalLink href="https://example.com/gebruiksvoorwaarden" style={{ color: '#007bff' }}>
@@ -440,7 +485,7 @@ useEffect(() => {
         </ExternalLink>{' '}
         zijn van toepassing.
       </ThemedText>
-    </ParallaxScrollView> 
+    </ParallaxScrollView>
   );
 }
 
