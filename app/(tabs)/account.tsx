@@ -34,7 +34,6 @@ async function getKeyValueStore(key: string, defaultval: any) {
   }
 } 
 
-
 const getStudentInfo = async () => {
   try {
     const response = await fetch('https://api.ehb-match.me/auth/info', {
@@ -50,7 +49,6 @@ const getStudentInfo = async () => {
     }
 
     const data = await response.json();
-    console.log(data)
     return data;
   } catch (error) {
     console.error('Failed to fetch student info:', error);
@@ -80,19 +78,28 @@ type AccountDetails = {
   DoB: string;
   opleiding: string;
   studiejaar: string;
-  type: string
+  type: string;
 };
 
-const Page = () => {
-    const snapPoints = useMemo(() => ['70%'], []);
-}
+type Opleidingen = {
+  id: number;
+  naam: string;
+  type: string;
+};
+
 
 function LoginMessage() {
     const bottomSheetModalRef = useRef<BottomSheetModal>(null);
+    const bottomSheetRegistrationRef = useRef<BottomSheetModal>(null);
 
     const handlePresentModalPress = useCallback(() => {
       bottomSheetModalRef.current?.present();
     }, []);
+
+    const handlePresentRegistrationPress = useCallback(() => {
+      bottomSheetRegistrationRef.current?.present();
+    }, []);
+
     const handleSheetChanges = useCallback((index: number) => {
       console.log('handleSheetChanges', index);
     }, []);
@@ -102,6 +109,44 @@ function LoginMessage() {
 
   const [isLoading, setIsLoading] = useState(false);
   const [message, setMessage] = useState('');
+
+  const [opleidingen, setOpleidingen] = useState<Opleidingen[]>([]);
+  const [opleidingID, setOpleidingID] = useState(null);
+
+
+  useEffect(() => {
+    const fetchOpleidingen = async () => {
+      try {
+        const response = await fetch('https://api.ehb-match.me/opleidingen', {
+          method: 'GET',
+          headers: {
+            'Accept': 'application/json',
+            'Content-Type': 'application/json',
+          },
+        });
+
+        if (!response.ok) {
+          console.error(`HTTP error! status: ${response.status}`);
+          return;
+        }
+
+        const data = await response.json();
+
+        const formattedData = data.map((item: Opleidingen) => ({
+          label: item.naam,
+          value: item.id,
+        }));
+
+        setOpleidingen(formattedData);
+
+        console.log('Parsed response:', data);
+      } catch (error) {
+        console.error('Fetch error:', error);
+      }
+    };
+
+    fetchOpleidingen();
+  }, []); 
 
   const StartAuth = async () => {
     setIsLoading(true);
@@ -128,7 +173,6 @@ function LoginMessage() {
     })
     .then(async data => {
       setIsLoading(false);
-      console.log('Parsed response:', data);
       const unixAccessToken = Math.floor(new Date(data["accessTokenExpiresAt"]).getTime() / 1000);
       const unixRefreshToken = Math.floor(new Date(data["refreshTokenExpiresAt"]).getTime() / 1000);
 
@@ -158,7 +202,6 @@ function LoginMessage() {
         <ThemedText>
           U bent momenteel niet ingelogd. Log in om de volledige featureset van deze app te gebruiken.
         </ThemedText>
-
         <TouchableOpacity
           style={[styles.button, { marginTop: 20 }]}
           onPress={handlePresentModalPress}
@@ -166,12 +209,12 @@ function LoginMessage() {
         >
           <ThemedText style={styles.buttonText}>Inloggen</ThemedText>
         </TouchableOpacity>
-
-        <TouchableOpacity style={styles.button} accessibilityLabel="Register button">
+        <TouchableOpacity onPress={handlePresentRegistrationPress} style={styles.button} accessibilityLabel="Register button">
           <ThemedText style={styles.buttonText}>Registreren</ThemedText>
         </TouchableOpacity>
       </ThemedView>
 
+      {/* Dit is de login scherm */}
       <BottomSheetModal
       ref={bottomSheetModalRef}
       index={1}
@@ -226,13 +269,84 @@ function LoginMessage() {
       </BottomSheetView>
     </BottomSheetModal>
 
+      {/* Dit is de registratie scherm */}
+      <BottomSheetModal
+      ref={bottomSheetRegistrationRef}
+      index={1}
+      onChange={handleSheetChanges}
+      snapPoints={snapPoints}
+      backgroundStyle={{ backgroundColor: colorScheme === 'dark' ? '#23201E' : '#F1EFEB' }}
+      handleIndicatorStyle={{ backgroundColor: 'gray' }}
+    >
+      <BottomSheetView style={[
+        styles.contentContainer,
+        { backgroundColor: colorScheme === 'dark' ? '#23201E' : '#F1EFEB' },
+        sheets.confirmPadding
+      ]}>
+        <ThemedView style={{ backgroundColor: colorScheme === 'dark' ? '#23201E' : '#F1EFEB' }}>
+          <ThemedText type="title">Maak een account aan!</ThemedText>
+          <ThemedText>Word lid van het netwerk door aan te melden.</ThemedText>
+
+          <TextInput
+            style={[sheets.input, {backgroundColor: '#F1EFEB'}]}
+            placeholder="E-Mail"
+            keyboardType="email-address"
+            autoComplete="email"
+            value={email}
+            onChangeText={setEmail}
+          />
+
+          <TextInput
+            style={[sheets.input, {backgroundColor: '#F1EFEB'}]}
+            placeholder="Password"
+            keyboardType="email-address"
+            secureTextEntry={true}
+            autoComplete="current-password"
+            value={password}
+            onChangeText={setPassword}
+          />
+
+          <TextInput
+            style={[sheets.input, {backgroundColor: '#F1EFEB'}]}
+            placeholder="Voornaam"
+            keyboardType="email-address"
+            autoComplete="email"
+            value={email}
+            onChangeText={setEmail}
+          />
+
+          <TextInput
+            style={[sheets.input, {backgroundColor: '#F1EFEB'}]}
+            placeholder="Achternaam"
+            keyboardType="email-address"
+            autoComplete="email"
+            value={email}
+            onChangeText={setEmail}
+          />
+
+          <TouchableOpacity
+            style={[styles.button, { marginTop: 20, marginHorizontal: 10 }]}
+            onPress={StartAuth}
+            accessibilityLabel="Login button"
+          >
+            <ThemedText style={styles.buttonText}>
+              {isLoading ? "Logging in..." : "Inloggen"}
+            </ThemedText>      
+          </TouchableOpacity>
+
+          <ThemedText style={styles.buttonText}>
+            {message}
+          </ThemedText> 
+
+        </ThemedView>
+      </BottomSheetView>
+    </BottomSheetModal>
+
     </ThemedView>
   );
 }
 
 export function AccountDetails({ voornaam, achternaam, pfp, email, linkedin, DoB, opleiding, studiejaar, type }: AccountDetails) {
-  console.log("Account Details rendered.")
-
   const logOut = async () => {
     console.log("Uitloggen...")
     save("Token", "WholeLoadaShit");
@@ -258,8 +372,9 @@ export function AccountDetails({ voornaam, achternaam, pfp, email, linkedin, DoB
         </TouchableHighlight>
 
         <ThemedView style={styles.VStack}>
-          <ThemedText type="title">{voornaam} {achternaam}</ThemedText>
-          <ThemedText>Erasmus Hogeschool Brussel</ThemedText>
+          <ThemedText type="title">{voornaam}</ThemedText>
+          <ThemedText type="subtitle">{achternaam}</ThemedText>
+          <ThemedText style={{opacity: 0.5}}>Erasmus Hogeschool Brussel</ThemedText>
           <ThemedText style={{opacity: 0.5}}>{typeProfiel()} • {opleiding} {studiejaar}</ThemedText>
         </ThemedView>
       </ThemedView>
@@ -276,9 +391,8 @@ export function AccountDetails({ voornaam, achternaam, pfp, email, linkedin, DoB
         <ThemedView style={styles.sectionRow}>
           <ThemedView style={styles.rowLeft}>
             <IconSymbol name="envelope" color="#8e8e93" style={styles.icon} />
-            <ThemedText style={styles.sectionText}>E-mail</ThemedText>
+            <ThemedText style={styles.sectionValue}>{email}</ThemedText>
           </ThemedView>
-          <ThemedText style={styles.sectionValue}>{email}</ThemedText>
         </ThemedView>
 
         <TouchableOpacity onPress={() => {
@@ -394,8 +508,6 @@ const useTokenListener = () => {
 };
 
 export default function AccountScreen() {
-  console.log("Account Screen rendered.")
-
   const token = useTokenListener();
 
   const [voornaam, setVoornaam] = useState('');
@@ -411,41 +523,42 @@ export default function AccountScreen() {
   const [studentFetched, setStudentFetched] = useState(false);
 
   useEffect(() => {
-    const fetchStudent = async () => {
-      try {
-        const student = await getStudentInfo();
-        if (student) {
-          setVoornaam(student["voornaam"]);
-          setAchternaam(student["achternaam"]);
-          setEmail(student["email"]);
-          setPfp(student["profielfoto"]);
-          setLinkedin(student["linkedin"]);
-          setDoB(student["date_of_birth"]);
-          setOpleiding(student["opleiding"]);
-          setStudiejaar(student["studiejaar"]);
-          setProfielType(student["type"]);
-          setStudentFetched(true);
-        }
-      } catch (error) {
-        console.error('Error fetching student:', error);
+  const fetchStudent = async () => {
+    try {
+      const student = await getStudentInfo();
+      console.log(student)
+      if (student) {
+        setVoornaam(student["user"]["voornaam"]);
+        setAchternaam(student["user"]["achternaam"]);
+        setEmail(student["user"]["email"]);
+        setPfp(student["user"]["profielfoto"]);
+        setLinkedin(student["user"]["linkedin"]);
+        setDoB(student["user"]["date_of_birth"]);
+        setOpleiding(student["user"]["opleiding"]);
+        setStudiejaar(student["user"]["studiejaar"]);
+        setProfielType(student["user"]["type"]);
+        setStudentFetched(true);
       }
-    };
-
-    const checkTokenAvailability = async () => {
-      if (token === "WholeLoadaShit") {
-        isLoggedIn(false);
-      } else {
-        isLoggedIn(true);
-        if (!studentFetched) {
-          await fetchStudent();
-        }
-      }
-    };
-
-    if (token !== null) {
-      checkTokenAvailability();
+    } catch (error) {
+      console.error('Error fetching student:', error);
     }
-  }, [token, studentFetched]);
+  };
+
+  const checkTokenAvailability = async () => {
+    if (token === "WholeLoadaShit") {
+      isLoggedIn(false);
+    } else {
+      isLoggedIn(true);
+      setStudentFetched(false);
+      await fetchStudent();
+    }
+  };
+
+  if (token !== null) {
+    checkTokenAvailability();
+  }
+}, [token]);
+
 
   return (
     <ParallaxScrollView
