@@ -95,7 +95,7 @@ export default function HomeScreen() {
           <ThemedView style={DateBoxStyles.container}>
             <ThemedView style={[DateBoxStyles.BoxDesign, { borderColor }]}>
               
-              <DateBox bedrijfsNaam="Combell" kortBeschrijving="Hosting" logoURL="https://s3-eu-west-1.amazonaws.com/tpd/logos/58d12fdc0000ff00059eea8f/0x0.png" />
+              <ThemedText style={{textAlign: "center"}}>Matching Schene</ThemedText>
               
             </ThemedView>
           </ThemedView>
