@@ -101,7 +101,6 @@ function LoginMessage() {
     }, []);
 
     const handleSheetChanges = useCallback((index: number) => {
-      console.log('handleSheetChanges', index);
     }, []);
 
   const [email, setEmail] = useState('');
@@ -185,7 +184,6 @@ function LoginMessage() {
       })
 
       const tokenData = await getKeyValueStore("Token", "{}");
-      console.log('Retrieved token data:', tokenData);
     })
     .catch(error => {
       console.error('Fetch error:', error);
@@ -396,8 +394,7 @@ export function AccountDetails({ voornaam, achternaam, pfp, email, linkedin, DoB
         </ThemedView>
 
         <TouchableOpacity onPress={() => {
-          console.log('Opening Linkedin...');
-          openLinkedInProfile(linkedin);
+-          openLinkedInProfile(linkedin);
         }} activeOpacity={0.7}>
           <ThemedView style={styles.sectionRow}>
             <ThemedView style={styles.rowLeft}>
@@ -423,25 +420,24 @@ export function AccountDetails({ voornaam, achternaam, pfp, email, linkedin, DoB
 }
 
 export async function ValidateToken() {
-  console.log("Starting Verification...")
   const key = await getKeyValueStore("Token", "WholeLoadaShit");
   const unixTime = Math.floor(new Date().getTime() / 1000);
 
+  console.log('Cookie header:', `refreshToken=${key["refreshToken"]}`);
+
   if (key["accessTokenExpiration"] > unixTime) {
-    console.log(`Verification Complete: ${key["accessToken"]}`)
+    console.log(key["accessToken"]);
     return key["accessToken"];
   } else if (key["accessTokenExpiration"] < unixTime) {
     try {
-      console.log(key["refreshToken"]);
       const response = await fetch('https://api.ehb-match.me/auth/refresh', {
         method: 'POST',
         headers: {
           'Accept': 'application/json',
           'Content-Type': 'application/json',
-          'Cookie': `refreshToken=${key["refreshToken"]}`,
         },
         body: JSON.stringify({
-          
+          'refreshToken': key["refreshToken"]
         }),
       });
 
@@ -450,7 +446,6 @@ export async function ValidateToken() {
       }
 
       const data = await response.json();
-      console.log('Parsed response:', data);
       
       const unixAccessToken = Math.floor(new Date(data["accessTokenExpiresAt"]).getTime() / 1000);
       const unixRefreshToken = Math.floor(new Date(key["refreshTokenExpiresAt"]).getTime() / 1000);
@@ -464,7 +459,6 @@ export async function ValidateToken() {
 
       const tokenData = await getKeyValueStore("Token", "{}");
       
-      console.log(`Verification Complete: ${tokenData["accessToken"]}`)
       return tokenData["accessToken"];
       
     } catch (error) {
@@ -472,7 +466,6 @@ export async function ValidateToken() {
       throw error;
     }
   }else if (key["refreshTokenExpiration"] < unixTime) {
-    console.log("Token is reset. Please log in again.");
     await save("Token", "WholeLoadaShit");
   }
 }
@@ -526,7 +519,6 @@ export default function AccountScreen() {
   const fetchStudent = async () => {
     try {
       const student = await getStudentInfo();
-      console.log(student)
       if (student) {
         setVoornaam(student["user"]["voornaam"]);
         setAchternaam(student["user"]["achternaam"]);
@@ -703,7 +695,6 @@ const styles = StyleSheet.create({
   rowLeft: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 8, // optional, if your RN version supports it
   },
   sectionValue: {
     fontSize: 16,
@@ -711,16 +702,16 @@ const styles = StyleSheet.create({
     backgroundColor: 'transparent'
   },
   button: {
-    backgroundColor: '#3b82f6', // blue-ish background
+    backgroundColor: '#3b82f6',
     borderRadius: 10,
-    paddingVertical: 15,   // makes button taller
+    paddingVertical: 15, 
     paddingHorizontal: 40, // makes button wider
     marginVertical: 10,
     alignItems: 'center',
   },
   buttonText: {
     color: 'white',
-    fontSize: 18, // larger text
+    fontSize: 18,
     fontWeight: '600',
   },
   container: {

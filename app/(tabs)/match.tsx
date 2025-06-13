@@ -39,7 +39,7 @@ export function DateBox({ bedrijfsNaam, kortBeschrijving, logoURL }: { bedrijfsN
 
         <ThemedView style={{ alignItems: 'flex-end' }}>
           <ThemedText type="subtitle">17:00</ThemedText>
-          <ThemedText type="defaultSemiBold">A101</ThemedText>
+          <ThemedText type="defaultSemiBold">Aula 3</ThemedText>
         </ThemedView>
       </ThemedView>
     </ThemedView>
@@ -73,20 +73,16 @@ export default function HomeScreen() {
   fetchData();
 }, []);
 
-  const { expoPushToken, notification, error } = useNotification();
-  console.log(expoPushToken);
-
   const theme = useColorScheme();
   const borderColor = theme === 'dark' ? 'white' : 'black';
 
-  console.log(speeddates)
 
   return (
     <ThemedView style={{ flex: 1 }}>
       <ThemedView style={[styles.headerContainer, { height: HEADER_HEIGHT, backgroundColor: theme === 'dark' ? 'rgba(20,20,20,0.95)' : 'rgba(255,255,255,0.95)', }]}>
         <ThemedView style={styles.titleContainer}>
-          <ThemedText type="title">Welkom!</ThemedText>
-          <ThemedText type="subtitle">Zo ziet je dag eruit!</ThemedText>
+          <ThemedText type="title">Match</ThemedText>
+          <ThemedText type="subtitle">Je bedrijf!</ThemedText>
         </ThemedView>
 
         <ThemedView style={styles.loaderContainer}>
@@ -100,7 +96,7 @@ export default function HomeScreen() {
             <ThemedView style={[DateBoxStyles.BoxDesign, { borderColor }]}>
               
               <DateBox bedrijfsNaam="Combell" kortBeschrijving="Hosting" logoURL="https://s3-eu-west-1.amazonaws.com/tpd/logos/58d12fdc0000ff00059eea8f/0x0.png" />
-
+              
             </ThemedView>
           </ThemedView>
         </ThemedView>

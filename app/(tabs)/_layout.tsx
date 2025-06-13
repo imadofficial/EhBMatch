@@ -34,6 +34,14 @@ export default function TabLayout() {
       />
 
       <Tabs.Screen
+        name="match"
+        options={{
+          title: 'Match',
+          tabBarIcon: ({ color }) => <IconSymbol size={28} name="heart.fill" color={color} />,
+        }}
+      />
+
+      <Tabs.Screen
         name="account"
         options={{
           title: 'Account',
