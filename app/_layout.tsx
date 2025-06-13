@@ -5,6 +5,7 @@ import { StatusBar } from 'expo-status-bar';
 import { View } from 'react-native';
 import 'react-native-reanimated';
 import Navbar from './Navbar';
+import * as Notifications from "expo-notifications";
 
 import { useColorScheme } from '@/hooks/useColorScheme';
 import LoginAuth from './Loginscreen';
@@ -12,8 +13,19 @@ import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { BottomSheetModalProvider } from '@gorhom/bottom-sheet';
 
 import { Linking, StyleSheet, Text, TouchableHighlight, TouchableOpacity } from 'react-native';
+import { NotificationProvider } from '@/context/NotificationContext';
 
 let LoggedIn = false
+
+Notifications.setNotificationHandler({
+  handleNotification: async () => ({
+    shouldPlaySound: false,
+    shouldSetBadge: false,
+    shouldShowAlert: true,
+    shouldShowBanner: true,
+    shouldShowList: false,
+  })
+});
 
 const styles = StyleSheet.create({
   container: {
@@ -36,24 +48,24 @@ export default function RootLayout() {
   if (!loaded) {
     return null;
   }
-
   
-
   return (
-    <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
-      <GestureHandlerRootView style={styles.container}>
-      <BottomSheetModalProvider>
-        <View style={{ flex: 1 }}>
-          <Stack>
-            <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-            <Stack.Screen name="+not-found" />
-          </Stack>
-        </View>
-      </BottomSheetModalProvider>
-      </GestureHandlerRootView>
+    <NotificationProvider>
+      <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
+        <GestureHandlerRootView style={styles.container}>
+        <BottomSheetModalProvider>
+          <View style={{ flex: 1 }}>
+            <Stack>
+              <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+              <Stack.Screen name="+not-found" />
+            </Stack>
+          </View>
+        </BottomSheetModalProvider>
+        </GestureHandlerRootView>
 
-      <StatusBar style="auto" />
-    </ThemeProvider>
+        <StatusBar style="auto" />
+      </ThemeProvider>
+    </NotificationProvider>
   );
 }
 

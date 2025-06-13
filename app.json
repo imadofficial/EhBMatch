@@ -13,6 +13,9 @@
       "bundleIdentifier": "com.imadsnetwork.EhBMatch",
       "infoPlist": {
         "ITSAppUsesNonExemptEncryption": false
+      },
+      "entitlements": {
+        "com.apple.developer.aps-environment": "development"
       }
     },
     "android": {
@@ -21,7 +24,8 @@
         "backgroundColor": "#ffffff"
       },
       "edgeToEdgeEnabled": true,
-      "package": "com.imadsnetwork.EhBMatch"
+      "package": "com.imadsnetwork.EhBMatch",
+      "googleServicesFile": "./google-services.json"
     },
     "web": {
       "bundler": "metro",
