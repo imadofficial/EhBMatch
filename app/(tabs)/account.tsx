@@ -13,6 +13,7 @@ import {
   BottomSheetModal,
   BottomSheetView
 } from '@gorhom/bottom-sheet';
+import { Int32 } from 'react-native/Libraries/Types/CodegenTypes';
 
 
 async function save(key: string, value: any) {
@@ -78,7 +79,7 @@ type AccountDetails = {
   DoB: string;
   opleiding: string;
   studiejaar: string;
-  type: string;
+  type: Int32;
 };
 
 type Opleidingen = {
@@ -354,10 +355,10 @@ export function AccountDetails({ voornaam, achternaam, pfp, email, linkedin, DoB
 
   const typeProfiel = async () => {
     switch(type){
-      case "student":
+      case 2:
         return "Student"
 
-      case "bedrijf":
+      case 1:
         return "Bedrijf"
     }
   }
@@ -412,6 +413,16 @@ export function AccountDetails({ voornaam, achternaam, pfp, email, linkedin, DoB
             accessibilityLabel="Uitlog knop"
           >
             <ThemedText style={styles.buttonText}>Uitloggen</ThemedText>
+          </TouchableOpacity>
+          </ThemedView>
+
+          <ThemedView>
+          <TouchableOpacity
+            style={[styles.button, { marginTop: 20 }]}
+            //onPress={}
+            accessibilityLabel="Skills modificatie"
+          >
+            <ThemedText style={styles.buttonTextView}>Skills</ThemedText>
           </TouchableOpacity>
           </ThemedView>
       </ThemedView>
@@ -519,6 +530,7 @@ export default function AccountScreen() {
   const fetchStudent = async () => {
     try {
       const student = await getStudentInfo();
+      console.log(student)
       if (student) {
         setVoornaam(student["user"]["voornaam"]);
         setAchternaam(student["user"]["achternaam"]);
@@ -551,6 +563,7 @@ export default function AccountScreen() {
   }
 }, [token]);
 
+  let TypeText = "";
 
   return (
     <ParallaxScrollView
@@ -713,6 +726,12 @@ const styles = StyleSheet.create({
     color: 'white',
     fontSize: 18,
     fontWeight: '600',
+  },
+  buttonTextView: {
+    color: 'white',
+    fontSize: 18,
+    fontWeight: '600',
+    alignSelf: "flex-start",
   },
   container: {
     flex: 1,

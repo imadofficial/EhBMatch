@@ -3,10 +3,9 @@ import { ActivityIndicator, Dimensions, StyleSheet, useColorScheme } from 'react
 
 import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
-import { useNotification } from '@/context/NotificationContext';
 import { useEffect, useState } from 'react';
 import { ScrollView } from 'react-native-gesture-handler';
-import { ValidateToken } from './account';
+import { ValidateToken } from './(tabs)/account';
 
 const screenHeight = Dimensions.get('window').height;
 
@@ -46,8 +45,6 @@ export function DateBox({ bedrijfsNaam, kortBeschrijving, logoURL }: { bedrijfsN
   );
 }
 
-const HEADER_HEIGHT = 100;
-
 export default function HomeScreen() {
   const [speeddates, setSpeeddates] = useState([]);
 
@@ -79,23 +76,12 @@ export default function HomeScreen() {
 
   return (
     <ThemedView style={{ flex: 1 }}>
-      <ThemedView style={[styles.headerContainer, { height: HEADER_HEIGHT, backgroundColor: theme === 'dark' ? 'rgba(20,20,20,0.95)' : 'rgba(255,255,255,0.95)', }]}>
-        <ThemedView style={styles.titleContainer}>
-          <ThemedText type="title">Match</ThemedText>
-          <ThemedText type="subtitle">Je bedrijf!</ThemedText>
-        </ThemedView>
-
-        <ThemedView style={styles.loaderContainer}>
-          <ActivityIndicator size="small" color={theme === 'dark' ? '#fff' : '#000'} />
-        </ThemedView>
-      </ThemedView>
-
-      <ScrollView style={{ flex: 1 }} contentContainerStyle={{ paddingBottom: 40 }}>
+      <ScrollView style={{ flex: 1 }} contentContainerStyle={{ paddingBottom: 20 }}>
         <ThemedView>
           <ThemedView style={DateBoxStyles.container}>
             <ThemedView style={[DateBoxStyles.BoxDesign, { borderColor }]}>
               
-              <ThemedText style={{textAlign: "center"}}>Matching Scherm</ThemedText>
+              <ThemedText style={{textAlign: "center"}}>F</ThemedText>
               
             </ThemedView>
           </ThemedView>
@@ -111,7 +97,7 @@ const DateBoxStyles = StyleSheet.create({
     borderRadius: 19,
     width: 350,
     paddingVertical: 10,
-    marginTop: 160
+    marginTop: 0
   },
   container: {
     alignItems: 'center',
@@ -127,7 +113,6 @@ const styles = StyleSheet.create({
     top: 60,
     left: 0,
     right: 0,
-    height: HEADER_HEIGHT,
     backgroundColor: 'rgba(255,255,255,0.95)',
     zIndex: 1000,
     flexDirection: 'row',

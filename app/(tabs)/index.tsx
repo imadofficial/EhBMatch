@@ -1,5 +1,6 @@
 import { Image } from 'expo-image';
-import { ActivityIndicator, Dimensions, StyleSheet, useColorScheme } from 'react-native';
+import { ActivityIndicator, Dimensions, StyleSheet, Text, TouchableOpacity, useColorScheme } from 'react-native';
+import { Stack, Tabs, Link } from 'expo-router';
 
 import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
@@ -7,10 +8,23 @@ import { useNotification } from '@/context/NotificationContext';
 import { useEffect, useState } from 'react';
 import { ScrollView } from 'react-native-gesture-handler';
 import { ValidateToken } from './account';
+import { useRouter } from 'expo-router';
 
 const screenHeight = Dimensions.get('window').height;
 
-export function DateBox({ bedrijfsNaam, kortBeschrijving, logoURL }: { bedrijfsNaam: string, kortBeschrijving: string, logoURL: string }) {
+interface SpeedDate {
+  id: string;
+  naam_bedrijf: string;
+  sector_bedrijf?: string;
+  profiel_foto_bedrijf: string;
+  lokaal: string;
+  begin: string;
+}
+
+export function DateBox({ bedrijfsNaam, kortBeschrijving, logoURL, Lokaal, Tijdstip }: { bedrijfsNaam: string, kortBeschrijving: string, logoURL: string, Lokaal: string, Tijdstip: string }) {
+  var d = new Date(Tijdstip);
+  var time = d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+
   return (
     <ThemedView style={{ paddingHorizontal: 15, paddingTop: 10, paddingBottom: 10, borderRadius: 20 }}>
       <ThemedView
@@ -38,8 +52,8 @@ export function DateBox({ bedrijfsNaam, kortBeschrijving, logoURL }: { bedrijfsN
         </ThemedView>
 
         <ThemedView style={{ alignItems: 'flex-end' }}>
-          <ThemedText type="subtitle">17:00</ThemedText>
-          <ThemedText type="defaultSemiBold">A101</ThemedText>
+          <ThemedText type="subtitle">{time}</ThemedText>
+          <ThemedText type="defaultSemiBold">{Lokaal}</ThemedText>
         </ThemedView>
       </ThemedView>
     </ThemedView>
@@ -48,59 +62,131 @@ export function DateBox({ bedrijfsNaam, kortBeschrijving, logoURL }: { bedrijfsN
 
 const HEADER_HEIGHT = 100;
 
-export default function HomeScreen() {
-  const [speeddates, setSpeeddates] = useState([]);
+export default function planningScreen() {
+  const router = useRouter();
+  const [speeddates, setSpeeddates] = useState<SpeedDate[]>([]);
 
   useEffect(() => {
-  const fetchData = async () => {
-    try {
-      const token = await ValidateToken();
-      const response = await fetch('https://api.ehb-match.me/speeddates', {
-        method: 'GET',
-        headers: {
-          Authorization: `Bearer ${token}`,
-          'Content-Type': 'application/json',
-        },
-      });
+    const fetchData = async () => {
+      try {
+        const token = await ValidateToken();
+        const response = await fetch("https://api.ehb-match.me/speeddates", {
+          method: "GET",
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+        });
 
-      const data = await response.json();
-      setSpeeddates(data);
-    } catch (error) {
-      console.error('Error fetching data:', error);
-    }
-  };
+        const data: SpeedDate[] = await response.json();
+        setSpeeddates(data);
+        console.log(data)
+      } catch (error) {
+        console.error("Error fetching data:", error);
+      }
+    };
 
-  fetchData();
-}, []);
-
-  const { expoPushToken, notification, error } = useNotification();
-  console.log(expoPushToken);
+    fetchData();
+  }, []);
 
   const theme = useColorScheme();
-  const borderColor = theme === 'dark' ? 'white' : 'black';
+  const borderColor = theme === "dark" ? "white" : "black";
 
-  console.log(speeddates)
+  const events = speeddates.map((date) => ({
+      ...date, //Spread Operator
+      beginDate: new Date(date.begin),
+    })).sort((a, b) => a.beginDate.getTime() - b.beginDate.getTime());
+
+  const grouped: Record<string, SpeedDate[]> = {};
+  for (const event of events) {
+    const key = event.beginDate.toDateString();
+    if (!grouped[key]) grouped[key] = [];
+    grouped[key].push(event);
+  }
+
+  const groupedDates = Object.keys(grouped)
+    .sort((a, b) => new Date(a).getTime() - new Date(b).getTime())
+    .slice(0, 2);
+
+  const formatDate = (date: Date): string => date.toLocaleDateString("nl-NL", { weekday: "long", day: "numeric", month: "long" });
 
   return (
     <ThemedView style={{ flex: 1 }}>
-      <ThemedView style={[styles.headerContainer, { height: HEADER_HEIGHT, backgroundColor: theme === 'dark' ? 'rgba(20,20,20,0.95)' : 'rgba(255,255,255,0.95)', }]}>
+      <ThemedView
+        style={[
+          styles.headerContainer,
+          {
+            height: HEADER_HEIGHT,
+            backgroundColor:
+              theme === "dark"
+                ? "rgba(20,20,20,0.95)"
+                : "rgba(255,255,255,0.95)",
+          },
+        ]}
+      >
         <ThemedView style={styles.titleContainer}>
           <ThemedText type="title">Welkom!</ThemedText>
-          <ThemedText type="subtitle">Zo ziet je dag eruit!</ThemedText>
+          <ThemedText type="subtitle">Zo ziet je kalender eruit!</ThemedText>
         </ThemedView>
 
         <ThemedView style={styles.loaderContainer}>
-          <ActivityIndicator size="small" color={theme === 'dark' ? '#fff' : '#000'} />
+          <ActivityIndicator
+            size="small"
+            color={theme === "dark" ? "#fff" : "#000"}
+          />
         </ThemedView>
       </ThemedView>
 
-      <ScrollView style={{ flex: 1 }} contentContainerStyle={{ paddingBottom: 40 }}>
+      <ScrollView style={{ flex: 1 }} contentContainerStyle={{ paddingBottom: 70 }}>
         <ThemedView>
           <ThemedView style={DateBoxStyles.container}>
             <ThemedView style={[DateBoxStyles.BoxDesign, { borderColor }]}>
-              
-              <DateBox bedrijfsNaam="Combell" kortBeschrijving="Hosting" logoURL="https://s3-eu-west-1.amazonaws.com/tpd/logos/58d12fdc0000ff00059eea8f/0x0.png" />
+              {groupedDates.map((dateKey) => {
+                const dateGroup = grouped[dateKey];
+                const title = formatDate(new Date(dateKey));
 
+                return (
+                  <ThemedView style={{ borderRadius: 20}} key={dateKey}>
+                    <ThemedText
+                      style={{
+                        marginLeft: 20,
+                        fontSize: 20,
+                        fontWeight: "bold",
+                        marginBottom: 10,
+                        marginTop: 10,
+                      }}
+                    >
+                      {title.charAt(0).toUpperCase() + title.slice(1)}
+                    </ThemedText>
+
+                    {dateGroup.map((date, index) => (
+                      <ThemedView
+                        key={date.id || index}
+                        style={{ borderRadius: 10 }}
+                      >
+                        <DateBox
+                          bedrijfsNaam={date.naam_bedrijf}
+                          kortBeschrijving={
+                            date.sector_bedrijf || "Geen sector opgegeven"
+                          }
+                          logoURL={date.profiel_foto_bedrijf}
+                          Lokaal={date.lokaal}
+                          Tijdstip={date.begin}
+                        />
+                      </ThemedView>
+                    ))}
+                  </ThemedView>
+                );
+              })}
+
+              <TouchableOpacity
+                style={{ alignItems: "center" }}
+                onPress={() => router.push("../vandaagPlanning")}
+              >
+                <Text style={{ color: "blue", marginTop: 10, fontSize: 16 }}>
+                  Bekijk meer
+                </Text>
+              </TouchableOpacity>
             </ThemedView>
           </ThemedView>
         </ThemedView>
@@ -137,19 +223,15 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    paddingHorizontal: 30,
+    paddingHorizontal: 25,
     borderRadius: 10,
     marginHorizontal: 16,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.2,
-    shadowRadius: 5,
-    elevation: 5,
+    shadowOpacity: 0.3,
+    shadowRadius: 10,
   },
   titleContainer: {
     flexDirection: 'column',
     alignItems: 'flex-start',
-    gap: 8,
   },
   loaderContainer: {
     alignSelf: 'center',
