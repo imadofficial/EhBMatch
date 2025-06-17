@@ -7,29 +7,29 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		03E58FF6E7453A564AF61928 /* libPods-EhBMatch.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 9231F9BAE9C3927D23EF26F9 /* libPods-EhBMatch.a */; };
 		13B07FBF1A68108700A75B9A /* Images.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 13B07FB51A68108700A75B9A /* Images.xcassets */; };
 		3E461D99554A48A4959DE609 /* SplashScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = AA286B85B6C04FC6940260E9 /* SplashScreen.storyboard */; };
-		54F9C73654B51F9F01EDC280 /* libPods-EhBMatch.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 114520F54E75233BC1CFBF3D /* libPods-EhBMatch.a */; };
-		7B159B346CC847A740071B5F /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = 35E5F599FBAE3AE1DA3D4E9A /* PrivacyInfo.xcprivacy */; };
+		B30DFCBB7C97B8324F4C7641 /* ExpoModulesProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = 61B510D0CA057B0F2C636BE8 /* ExpoModulesProvider.swift */; };
 		BB2F792D24A3F905000567C9 /* Expo.plist in Resources */ = {isa = PBXBuildFile; fileRef = BB2F792C24A3F905000567C9 /* Expo.plist */; };
+		C42A7FD6729DAD020C0D26F3 /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = DEFB9B0FEE250AF63F04D109 /* PrivacyInfo.xcprivacy */; };
 		F11748422D0307B40044C1D9 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = F11748412D0307B40044C1D9 /* AppDelegate.swift */; };
-		FBFF348AF048BA1EB5C138F5 /* ExpoModulesProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = E6F55055081E1DD7FD6D7C7F /* ExpoModulesProvider.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
-		0BA6D659529299C18903B41F /* Pods-EhBMatch.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-EhBMatch.debug.xcconfig"; path = "Target Support Files/Pods-EhBMatch/Pods-EhBMatch.debug.xcconfig"; sourceTree = "<group>"; };
-		114520F54E75233BC1CFBF3D /* libPods-EhBMatch.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libPods-EhBMatch.a"; sourceTree = BUILT_PRODUCTS_DIR; };
 		13B07F961A680F5B00A75B9A /* EhBMatch.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = EhBMatch.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		13B07FB51A68108700A75B9A /* Images.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; name = Images.xcassets; path = EhBMatch/Images.xcassets; sourceTree = "<group>"; };
 		13B07FB61A68108700A75B9A /* Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; name = Info.plist; path = EhBMatch/Info.plist; sourceTree = "<group>"; };
-		35E5F599FBAE3AE1DA3D4E9A /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xml; name = PrivacyInfo.xcprivacy; path = EhBMatch/PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
+		61B510D0CA057B0F2C636BE8 /* ExpoModulesProvider.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = ExpoModulesProvider.swift; path = "Pods/Target Support Files/Pods-EhBMatch/ExpoModulesProvider.swift"; sourceTree = "<group>"; };
+		9231F9BAE9C3927D23EF26F9 /* libPods-EhBMatch.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libPods-EhBMatch.a"; sourceTree = BUILT_PRODUCTS_DIR; };
+		A2C28E0A8688BDE91755A7BA /* Pods-EhBMatch.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-EhBMatch.release.xcconfig"; path = "Target Support Files/Pods-EhBMatch/Pods-EhBMatch.release.xcconfig"; sourceTree = "<group>"; };
 		AA286B85B6C04FC6940260E9 /* SplashScreen.storyboard */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.storyboard; name = SplashScreen.storyboard; path = EhBMatch/SplashScreen.storyboard; sourceTree = "<group>"; };
 		BB2F792C24A3F905000567C9 /* Expo.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = Expo.plist; sourceTree = "<group>"; };
-		DFE7BE4E3576397BD2D836C7 /* Pods-EhBMatch.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-EhBMatch.release.xcconfig"; path = "Target Support Files/Pods-EhBMatch/Pods-EhBMatch.release.xcconfig"; sourceTree = "<group>"; };
-		E6F55055081E1DD7FD6D7C7F /* ExpoModulesProvider.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = ExpoModulesProvider.swift; path = "Pods/Target Support Files/Pods-EhBMatch/ExpoModulesProvider.swift"; sourceTree = "<group>"; };
+		DEFB9B0FEE250AF63F04D109 /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xml; name = PrivacyInfo.xcprivacy; path = EhBMatch/PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
 		ED297162215061F000B7C4FE /* JavaScriptCore.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = JavaScriptCore.framework; path = System/Library/Frameworks/JavaScriptCore.framework; sourceTree = SDKROOT; };
 		F11748412D0307B40044C1D9 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = AppDelegate.swift; path = EhBMatch/AppDelegate.swift; sourceTree = "<group>"; };
 		F11748442D0722820044C1D9 /* EhBMatch-Bridging-Header.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = "EhBMatch-Bridging-Header.h"; path = "EhBMatch/EhBMatch-Bridging-Header.h"; sourceTree = "<group>"; };
+		F5777088C8B67C0077FD2A9F /* Pods-EhBMatch.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-EhBMatch.debug.xcconfig"; path = "Target Support Files/Pods-EhBMatch/Pods-EhBMatch.debug.xcconfig"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -37,21 +37,13 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				54F9C73654B51F9F01EDC280 /* libPods-EhBMatch.a in Frameworks */,
+				03E58FF6E7453A564AF61928 /* libPods-EhBMatch.a in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
-		0448CD93A16337997E5A935B /* ExpoModulesProviders */ = {
-			isa = PBXGroup;
-			children = (
-				B53B3CD45263BB4C727B5018 /* EhBMatch */,
-			);
-			name = ExpoModulesProviders;
-			sourceTree = "<group>";
-		};
 		13B07FAE1A68108700A75B9A /* EhBMatch */ = {
 			isa = PBXGroup;
 			children = (
@@ -61,7 +53,7 @@
 				13B07FB51A68108700A75B9A /* Images.xcassets */,
 				13B07FB61A68108700A75B9A /* Info.plist */,
 				AA286B85B6C04FC6940260E9 /* SplashScreen.storyboard */,
-				35E5F599FBAE3AE1DA3D4E9A /* PrivacyInfo.xcprivacy */,
+				DEFB9B0FEE250AF63F04D109 /* PrivacyInfo.xcprivacy */,
 			);
 			name = EhBMatch;
 			sourceTree = "<group>";
@@ -70,18 +62,17 @@
 			isa = PBXGroup;
 			children = (
 				ED297162215061F000B7C4FE /* JavaScriptCore.framework */,
-				114520F54E75233BC1CFBF3D /* libPods-EhBMatch.a */,
+				9231F9BAE9C3927D23EF26F9 /* libPods-EhBMatch.a */,
 			);
 			name = Frameworks;
 			sourceTree = "<group>";
 		};
-		491A0DB2CB6566850EA1ADA4 /* Pods */ = {
+		4B929C95C863D5DA7C3A8F9D /* ExpoModulesProviders */ = {
 			isa = PBXGroup;
 			children = (
-				0BA6D659529299C18903B41F /* Pods-EhBMatch.debug.xcconfig */,
-				DFE7BE4E3576397BD2D836C7 /* Pods-EhBMatch.release.xcconfig */,
+				C09CC4AEBB9C38D29AB5E634 /* EhBMatch */,
 			);
-			path = Pods;
+			name = ExpoModulesProviders;
 			sourceTree = "<group>";
 		};
 		832341AE1AAA6A7D00B99B32 /* Libraries */ = {
@@ -98,8 +89,8 @@
 				832341AE1AAA6A7D00B99B32 /* Libraries */,
 				83CBBA001A601CBA00E9B192 /* Products */,
 				2D16E6871FA4F8E400B85C8A /* Frameworks */,
-				491A0DB2CB6566850EA1ADA4 /* Pods */,
-				0448CD93A16337997E5A935B /* ExpoModulesProviders */,
+				FA7F27AED8A45A460AD3E529 /* Pods */,
+				4B929C95C863D5DA7C3A8F9D /* ExpoModulesProviders */,
 			);
 			indentWidth = 2;
 			sourceTree = "<group>";
@@ -114,14 +105,6 @@
 			name = Products;
 			sourceTree = "<group>";
 		};
-		B53B3CD45263BB4C727B5018 /* EhBMatch */ = {
-			isa = PBXGroup;
-			children = (
-				E6F55055081E1DD7FD6D7C7F /* ExpoModulesProvider.swift */,
-			);
-			name = EhBMatch;
-			sourceTree = "<group>";
-		};
 		BB2F792B24A3F905000567C9 /* Supporting */ = {
 			isa = PBXGroup;
 			children = (
@@ -129,6 +112,23 @@
 			);
 			name = Supporting;
 			path = EhBMatch/Supporting;
+			sourceTree = "<group>";
+		};
+		C09CC4AEBB9C38D29AB5E634 /* EhBMatch */ = {
+			isa = PBXGroup;
+			children = (
+				61B510D0CA057B0F2C636BE8 /* ExpoModulesProvider.swift */,
+			);
+			name = EhBMatch;
+			sourceTree = "<group>";
+		};
+		FA7F27AED8A45A460AD3E529 /* Pods */ = {
+			isa = PBXGroup;
+			children = (
+				F5777088C8B67C0077FD2A9F /* Pods-EhBMatch.debug.xcconfig */,
+				A2C28E0A8688BDE91755A7BA /* Pods-EhBMatch.release.xcconfig */,
+			);
+			path = Pods;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -139,13 +139,13 @@
 			buildConfigurationList = 13B07F931A680F5B00A75B9A /* Build configuration list for PBXNativeTarget "EhBMatch" */;
 			buildPhases = (
 				08A4A3CD28434E44B6B9DE2E /* [CP] Check Pods Manifest.lock */,
-				D71794B3989D283D94D6B182 /* [Expo] Configure project */,
+				2D4EAE83D901A3E7E0CDA402 /* [Expo] Configure project */,
 				13B07F871A680F5B00A75B9A /* Sources */,
 				13B07F8C1A680F5B00A75B9A /* Frameworks */,
 				13B07F8E1A680F5B00A75B9A /* Resources */,
 				00DD1BFF1BD5951E006B06BC /* Bundle React Native code and images */,
 				800E24972A6A228C8D4807E9 /* [CP] Copy Pods Resources */,
-				20BD78A3F0766389194D5B19 /* [CP] Embed Pods Frameworks */,
+				84BD17FFEBC360E58FCFEB07 /* [CP] Embed Pods Frameworks */,
 			);
 			buildRules = (
 			);
@@ -195,7 +195,7 @@
 				BB2F792D24A3F905000567C9 /* Expo.plist in Resources */,
 				13B07FBF1A68108700A75B9A /* Images.xcassets in Resources */,
 				3E461D99554A48A4959DE609 /* SplashScreen.storyboard in Resources */,
-				7B159B346CC847A740071B5F /* PrivacyInfo.xcprivacy in Resources */,
+				C42A7FD6729DAD020C0D26F3 /* PrivacyInfo.xcprivacy in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -239,23 +239,24 @@
 			shellScript = "diff \"${PODS_PODFILE_DIR_PATH}/Podfile.lock\" \"${PODS_ROOT}/Manifest.lock\" > /dev/null\nif [ $? != 0 ] ; then\n    # print error to STDERR\n    echo \"error: The sandbox is not in sync with the Podfile.lock. Run 'pod install' or update your CocoaPods installation.\" >&2\n    exit 1\nfi\n# This output is used by Xcode 'outputs' to avoid re-running this script phase.\necho \"SUCCESS\" > \"${SCRIPT_OUTPUT_FILE_0}\"\n";
 			showEnvVarsInLog = 0;
 		};
-		20BD78A3F0766389194D5B19 /* [CP] Embed Pods Frameworks */ = {
+		2D4EAE83D901A3E7E0CDA402 /* [Expo] Configure project */ = {
 			isa = PBXShellScriptBuildPhase;
+			alwaysOutOfDate = 1;
 			buildActionMask = 2147483647;
 			files = (
 			);
-			inputPaths = (
-				"${PODS_ROOT}/Target Support Files/Pods-EhBMatch/Pods-EhBMatch-frameworks.sh",
-				"${PODS_XCFRAMEWORKS_BUILD_DIR}/hermes-engine/Pre-built/hermes.framework/hermes",
+			inputFileListPaths = (
 			);
-			name = "[CP] Embed Pods Frameworks";
+			inputPaths = (
+			);
+			name = "[Expo] Configure project";
+			outputFileListPaths = (
+			);
 			outputPaths = (
-				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/hermes.framework",
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = "\"${PODS_ROOT}/Target Support Files/Pods-EhBMatch/Pods-EhBMatch-frameworks.sh\"\n";
-			showEnvVarsInLog = 0;
+			shellScript = "# This script configures Expo modules and generates the modules provider file.\nbash -l -c \"./Pods/Target\\ Support\\ Files/Pods-EhBMatch/expo-configure-project.sh\"\n";
 		};
 		800E24972A6A228C8D4807E9 /* [CP] Copy Pods Resources */ = {
 			isa = PBXShellScriptBuildPhase;
@@ -305,24 +306,23 @@
 			shellScript = "\"${PODS_ROOT}/Target Support Files/Pods-EhBMatch/Pods-EhBMatch-resources.sh\"\n";
 			showEnvVarsInLog = 0;
 		};
-		D71794B3989D283D94D6B182 /* [Expo] Configure project */ = {
+		84BD17FFEBC360E58FCFEB07 /* [CP] Embed Pods Frameworks */ = {
 			isa = PBXShellScriptBuildPhase;
-			alwaysOutOfDate = 1;
 			buildActionMask = 2147483647;
 			files = (
 			);
-			inputFileListPaths = (
-			);
 			inputPaths = (
+				"${PODS_ROOT}/Target Support Files/Pods-EhBMatch/Pods-EhBMatch-frameworks.sh",
+				"${PODS_XCFRAMEWORKS_BUILD_DIR}/hermes-engine/Pre-built/hermes.framework/hermes",
 			);
-			name = "[Expo] Configure project";
-			outputFileListPaths = (
-			);
+			name = "[CP] Embed Pods Frameworks";
 			outputPaths = (
+				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/hermes.framework",
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = "# This script configures Expo modules and generates the modules provider file.\nbash -l -c \"./Pods/Target\\ Support\\ Files/Pods-EhBMatch/expo-configure-project.sh\"\n";
+			shellScript = "\"${PODS_ROOT}/Target Support Files/Pods-EhBMatch/Pods-EhBMatch-frameworks.sh\"\n";
+			showEnvVarsInLog = 0;
 		};
 /* End PBXShellScriptBuildPhase section */
 
@@ -332,7 +332,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				F11748422D0307B40044C1D9 /* AppDelegate.swift in Sources */,
-				FBFF348AF048BA1EB5C138F5 /* ExpoModulesProvider.swift in Sources */,
+				B30DFCBB7C97B8324F4C7641 /* ExpoModulesProvider.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -341,7 +341,7 @@
 /* Begin XCBuildConfiguration section */
 		13B07F941A680F5B00A75B9A /* Debug */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = 0BA6D659529299C18903B41F /* Pods-EhBMatch.debug.xcconfig */;
+			baseConfigurationReference = F5777088C8B67C0077FD2A9F /* Pods-EhBMatch.debug.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CLANG_ENABLE_MODULES = YES;
@@ -378,7 +378,7 @@
 		};
 		13B07F951A680F5B00A75B9A /* Release */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = DFE7BE4E3576397BD2D836C7 /* Pods-EhBMatch.release.xcconfig */;
+			baseConfigurationReference = A2C28E0A8688BDE91755A7BA /* Pods-EhBMatch.release.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CLANG_ENABLE_MODULES = YES;
