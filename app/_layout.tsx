@@ -55,7 +55,9 @@ export default function RootLayout() {
         <GestureHandlerRootView style={styles.container}>
         <BottomSheetModalProvider>
           <View style={{ flex: 1 }}>
-            <Stack>
+            <Stack screenOptions={{
+              headerBackTitle: 'Terug',
+            }}>
               <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
               <Stack.Screen name="+not-found" />
             </Stack>

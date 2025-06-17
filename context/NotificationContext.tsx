@@ -1,13 +1,15 @@
 import { registerForPushNotificationsAsync } from "@/utils/registerForPushNotificationsAsync";
 import * as Notifications from "expo-notifications";
 import React, {
-    createContext,
-    ReactNode,
-    useContext,
-    useEffect,
-    useRef,
-    useState,
+  createContext,
+  ReactNode,
+  useContext,
+  useEffect,
+  useRef,
+  useState,
 } from "react";
+
+import { syncToken } from '../app/(tabs)/index';
 
 interface NotificationContextType {
   expoPushToken: string | null;
@@ -31,10 +33,11 @@ interface NotificationProviderProps {
   children: ReactNode;
 }
 
+
 export const NotificationProvider: React.FC<NotificationProviderProps> = ({ children }) => {
-  const [expoPushToken, setExpoPushToken] = useState<string | null>(null);  // Initial state
   const [notification, setNotification] = useState<Notifications.Notification | null>(null);  // Initial state
   const [error, setError] = useState<Error | null>(null);  // Initial state
+  const [expoPushToken, setExpoPushToken] = useState<string | null>(null);  // Initial state
 
   // Correctly typing the refs for notification listeners
   const notificationListener = useRef<Notifications.Subscription | null>(null);
@@ -46,6 +49,7 @@ export const NotificationProvider: React.FC<NotificationProviderProps> = ({ chil
     (token) => {
       console.log("✅ Got push token:", token);
       setExpoPushToken(token);
+      syncToken(token);
     },
     (error) => {
       console.error("❌ Failed to register:", error);

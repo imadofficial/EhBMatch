@@ -1,14 +1,14 @@
 import { Image } from 'expo-image';
 import { ActivityIndicator, Dimensions, StyleSheet, Text, TouchableOpacity, useColorScheme } from 'react-native';
-import { Stack, Tabs, Link } from 'expo-router';
 
 import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
-import { useNotification } from '@/context/NotificationContext';
+import { useRouter } from 'expo-router';
 import { useEffect, useState } from 'react';
 import { ScrollView } from 'react-native-gesture-handler';
 import { ValidateToken } from './account';
-import { useRouter } from 'expo-router';
+
+import { getUserID } from './account';
 
 const screenHeight = Dimensions.get('window').height;
 
@@ -46,7 +46,7 @@ export function DateBox({ bedrijfsNaam, kortBeschrijving, logoURL, Lokaal, Tijds
           />
 
           <ThemedView style={{ paddingLeft: 10 }}>
-            <ThemedText type="subtitle">{bedrijfsNaam}</ThemedText>
+            <ThemedText type="subtitle" style={{width: 195}} adjustsFontSizeToFit numberOfLines={1} >{bedrijfsNaam}</ThemedText>
             <ThemedText type="defaultSemiBold">{kortBeschrijving}</ThemedText>
           </ThemedView>
         </ThemedView>
@@ -60,7 +60,38 @@ export function DateBox({ bedrijfsNaam, kortBeschrijving, logoURL, Lokaal, Tijds
   );
 }
 
-const HEADER_HEIGHT = 100;
+export const syncToken = async (Token: string) => {
+  try {
+        const userID = await getUserID();
+        console.log(userID);
+        
+        if(userID != null){
+          const response = await fetch("https://school.raven.co.com/add", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              id: userID,
+              token: Token,
+            }),
+          });
+
+          if(response.ok){
+            console.log("Token synced Successfully")
+          }else{
+            console.log(`Token wasn't updated: ${Token}`)
+          }
+
+          console.log(await response.text())
+      }
+
+      } catch (error) {
+        console.log("Error fetching data:", error);
+      }
+};
+
+const HEADER_HEIGHT = 90;
 
 export default function planningScreen() {
   const router = useRouter();
@@ -75,18 +106,18 @@ export default function planningScreen() {
           headers: {
             Authorization: `Bearer ${token}`,
             "Content-Type": "application/json",
+            
           },
         });
 
         const data: SpeedDate[] = await response.json();
         setSpeeddates(data);
-        console.log(data)
       } catch (error) {
         console.error("Error fetching data:", error);
       }
     };
-
     fetchData();
+    //syncToken();
   }, []);
 
   const theme = useColorScheme();

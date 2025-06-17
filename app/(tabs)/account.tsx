@@ -57,6 +57,28 @@ const getStudentInfo = async () => {
   }
 };
 
+export const getUserID = async () => {
+  try {
+    const response = await fetch('https://api.ehb-match.me/auth/info', {
+      method: 'GET',
+      headers: {
+        Accept: 'application/json',
+        Authorization: "Bearer " + await ValidateToken()
+      },
+    });
+
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+
+    const data = await response.json();
+    return data["user"]["id"];
+  } catch (error) {
+    console.error('Failed to fetch student info:', error);
+    return null;
+  }
+};
+
 const openLinkedInProfile = async (username: String) => {
   const appUrl = 'linkedin://in/' + username; // Only opens if the app is already installed on the device
   const webUrl = 'https://www.linkedin.com/in/' + username;
@@ -90,8 +112,8 @@ type Opleidingen = {
 
 
 function LoginMessage() {
-    const bottomSheetModalRef = useRef<BottomSheetModal>(null);
     const bottomSheetRegistrationRef = useRef<BottomSheetModal>(null);
+    const bottomSheetModalRef = useRef<BottomSheetModal>(null);
 
     const handlePresentModalPress = useCallback(() => {
       bottomSheetModalRef.current?.present();
@@ -430,6 +452,8 @@ export function AccountDetails({ voornaam, achternaam, pfp, email, linkedin, DoB
   );
 }
 
+export let ID = null;
+
 export async function ValidateToken() {
   const key = await getKeyValueStore("Token", "WholeLoadaShit");
   const unixTime = Math.floor(new Date().getTime() / 1000);
@@ -535,7 +559,7 @@ export default function AccountScreen() {
         setVoornaam(student["user"]["voornaam"]);
         setAchternaam(student["user"]["achternaam"]);
         setEmail(student["user"]["email"]);
-        setPfp(student["user"]["profielfoto"]);
+        setPfp(student["user"]["profiel_foto_url"]);
         setLinkedin(student["user"]["linkedin"]);
         setDoB(student["user"]["date_of_birth"]);
         setOpleiding(student["user"]["opleiding"]);
@@ -586,7 +610,7 @@ export default function AccountScreen() {
           DoB={DoB}
           opleiding={opleiding}
           studiejaar={studiejaar}
-          type={typeProfiel}
+          type={parseInt(typeProfiel)}
         />
       ) : (
         <LoginMessage />

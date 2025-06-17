@@ -47,6 +47,7 @@ export function DateBox({ bedrijfsNaam, kortBeschrijving, logoURL }: { bedrijfsN
 
 export default function HomeScreen() {
   const [speeddates, setSpeeddates] = useState([]);
+  
 
   useEffect(() => {
   const fetchData = async () => {
