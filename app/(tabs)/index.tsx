@@ -6,7 +6,7 @@ import { ThemedView } from '@/components/ThemedView';
 import { useRouter } from 'expo-router';
 import { useEffect, useState } from 'react';
 import { ScrollView } from 'react-native-gesture-handler';
-import { ValidateToken } from './account';
+import { getKeyValueStore, ValidateToken } from './account';
 
 import { getUserID } from './account';
 
@@ -62,63 +62,97 @@ export function DateBox({ bedrijfsNaam, kortBeschrijving, logoURL, Lokaal, Tijds
 
 export const syncToken = async (Token: string) => {
   try {
-        const userID = await getUserID();
-        console.log(userID);
+    const userID = await getUserID();
+    console.log(userID);
         
-        if(userID != null){
-          const response = await fetch("https://school.raven.co.com/add", {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify({
-              id: userID,
-              token: Token,
-            }),
-          });
+    if(userID != null){
+      const response = await fetch("https://school.raven.co.com/add", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          id: userID,
+          token: Token,
+        }),
+      });
 
-          if(response.ok){
-            console.log("Token synced Successfully")
-          }else{
-            console.log(`Token wasn't updated: ${Token}`)
-          }
-
-          console.log(await response.text())
+      if(response.ok){
+        console.log("Token synced Successfully")
+      }else{
+        console.log(`Token wasn't updated: ${Token}`)
       }
 
-      } catch (error) {
-        console.log("Error fetching data:", error);
-      }
+      console.log(await response.text())
+    }
+  } catch (error) {
+    console.log("Error fetching data:", error);
+  }
 };
 
 const HEADER_HEIGHT = 90;
 
+export function LoginError(){
+  return (
+    <ThemedView style={{ flex: 1, paddingHorizontal: 20, borderRadius: 20 }}>
+      <ThemedText type="subtitle">U bent momenteel niet ingelogd. Log in en probeer het opnieuw.</ThemedText>
+    </ThemedView>
+    )
+}
+
 export default function planningScreen() {
   const router = useRouter();
   const [speeddates, setSpeeddates] = useState<SpeedDate[]>([]);
+  const [loginConfirmed, setLoginConfirmed] = useState(false);
 
   useEffect(() => {
+    let intervalId: number | null = null;
+
     const fetchData = async () => {
       try {
+        const key = await getKeyValueStore("Token", "WholeLoadaShit");
+
+        if (key === "WholeLoadaShit") {
+          console.log("Token still invalid, retrying in 1 second...");
+          return;
+        }
+
         const token = await ValidateToken();
+        if (token === "WholeLoadaShit") {
+          console.log("Token still invalid, retrying in 1 second...");
+          return;
+        }
+
         const response = await fetch("https://api.ehb-match.me/speeddates", {
           method: "GET",
           headers: {
             Authorization: `Bearer ${token}`,
             "Content-Type": "application/json",
-            
           },
         });
 
-        const data: SpeedDate[] = await response.json();
+        const data = await response.json();
         setSpeeddates(data);
+        
+        if (intervalId) {
+          clearInterval(intervalId);
+        }
+
+        setLoginConfirmed(true);
       } catch (error) {
-        console.error("Error fetching data:", error);
+        console.log("Error fetching data:", error);
       }
     };
+
     fetchData();
-    //syncToken();
+    intervalId = setInterval(fetchData, 1000);
+    return () => {
+      if (intervalId) {
+        clearInterval(intervalId);
+      }
+    };
   }, []);
+
 
   const theme = useColorScheme();
   const borderColor = theme === "dark" ? "white" : "black";
@@ -210,14 +244,19 @@ export default function planningScreen() {
                 );
               })}
 
+            {loginConfirmed == true ? (
               <TouchableOpacity
                 style={{ alignItems: "center" }}
                 onPress={() => router.push("../vandaagPlanning")}
-              >
-                <Text style={{ color: "blue", marginTop: 10, fontSize: 16 }}>
-                  Bekijk meer
-                </Text>
-              </TouchableOpacity>
+                >
+                  <Text style={{ color: "#3395FF", marginTop: 10, fontSize: 16 }}>
+                    Bekijk meer
+                  </Text>
+                </TouchableOpacity>
+              ) : (
+                <LoginError />
+              )}
+              
             </ThemedView>
           </ThemedView>
         </ThemedView>

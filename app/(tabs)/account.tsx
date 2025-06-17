@@ -20,7 +20,7 @@ async function save(key: string, value: any) {
   await SecureStore.setItemAsync(key, JSON.stringify(value));
 }
 
-async function getKeyValueStore(key: string, defaultval: any) {
+export async function getKeyValueStore(key: string, defaultval: any) {
   try {
     const result = await SecureStore.getItemAsync(key);
     if (result) {
@@ -74,7 +74,7 @@ export const getUserID = async () => {
     const data = await response.json();
     return data["user"]["id"];
   } catch (error) {
-    console.error('Failed to fetch student info:', error);
+    console.log('[ ERROR ]  Failed to fetch student info:', error);
     return null;
   }
 };
@@ -568,7 +568,7 @@ export default function AccountScreen() {
         setStudentFetched(true);
       }
     } catch (error) {
-      console.error('Error fetching student:', error);
+      console.log('[Error] fetching student:', error);
     }
   };
 

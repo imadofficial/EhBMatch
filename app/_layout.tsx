@@ -1,19 +1,18 @@
 import { DarkTheme, DefaultTheme, ThemeProvider } from '@react-navigation/native';
 import { useFonts } from 'expo-font';
+import * as Notifications from "expo-notifications";
 import { Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { View } from 'react-native';
 import 'react-native-reanimated';
-import Navbar from './Navbar';
-import * as Notifications from "expo-notifications";
 
 import { useColorScheme } from '@/hooks/useColorScheme';
-import LoginAuth from './Loginscreen';
-import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { BottomSheetModalProvider } from '@gorhom/bottom-sheet';
+import { GestureHandlerRootView } from 'react-native-gesture-handler';
 
-import { Linking, StyleSheet, Text, TouchableHighlight, TouchableOpacity } from 'react-native';
+import { LoginProvider } from '@/context/LoginContext';
 import { NotificationProvider } from '@/context/NotificationContext';
+import { StyleSheet } from 'react-native';
 
 let LoggedIn = false
 
@@ -50,24 +49,26 @@ export default function RootLayout() {
   }
   
   return (
-    <NotificationProvider>
-      <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
-        <GestureHandlerRootView style={styles.container}>
-        <BottomSheetModalProvider>
-          <View style={{ flex: 1 }}>
-            <Stack screenOptions={{
-              headerBackTitle: 'Terug',
-            }}>
-              <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-              <Stack.Screen name="+not-found" />
-            </Stack>
-          </View>
-        </BottomSheetModalProvider>
-        </GestureHandlerRootView>
+    <LoginProvider>
+      <NotificationProvider>
+        <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
+          <GestureHandlerRootView style={styles.container}>
+          <BottomSheetModalProvider>
+            <View style={{ flex: 1 }}>
+              <Stack screenOptions={{
+                headerBackTitle: 'Terug',
+              }}>
+                <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+                <Stack.Screen name="+not-found" />
+              </Stack>
+            </View>
+          </BottomSheetModalProvider>
+          </GestureHandlerRootView>
 
-        <StatusBar style="auto" />
-      </ThemeProvider>
-    </NotificationProvider>
+          <StatusBar style="auto" />
+        </ThemeProvider>
+      </NotificationProvider>
+    </LoginProvider>
   );
 }
 

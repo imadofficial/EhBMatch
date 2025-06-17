@@ -58,7 +58,7 @@ export function DateBox({ bedrijfsNaam, kortBeschrijving, logoURL, matchScore }:
 
         <ThemedView style={{ alignItems: 'flex-end' }}>
           <ThemedView style={{ height: 30, width: 60, backgroundColor: color, borderRadius: 100, alignItems: "center", justifyContent: "center"}}>
-            <ThemedText type="subtitle" adjustsFontSizeToFit numberOfLines={1}>{matchScore}%</ThemedText>
+            <ThemedText type="subtitle" adjustsFontSizeToFit numberOfLines={1}>{Math.round(matchScore)}%</ThemedText>
           </ThemedView>
 
           <ThemedText type="defaultSemiBold">Match Score</ThemedText>
@@ -105,7 +105,7 @@ export default function HomeScreen() {
       const data = await response.json();
       setBedrijven(data);
     } catch (error) {
-      console.error('Error fetching data:', error);
+      console.log('Error fetching data:', error);
     }
   };
 
@@ -189,7 +189,7 @@ export default function HomeScreen() {
                 </TouchableOpacity>
 
                 <TouchableOpacity
-                  onPress={() => {/* handle cancel action */}}
+                  onPress={() => {handleDismissal();}}
                   style={{
                     backgroundColor: '#D23042',
                     paddingVertical: 12,
