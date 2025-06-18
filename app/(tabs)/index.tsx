@@ -104,8 +104,10 @@ export default function planningScreen() {
   const router = useRouter();
   const [speeddates, setSpeeddates] = useState<SpeedDate[]>([]);
   const [loginConfirmed, setLoginConfirmed] = useState(false);
+  const [loading, isLoading] = useState(true);
 
   useEffect(() => {
+    isLoading(true);
     let intervalId: number | null = null;
 
     const fetchData = async () => {
@@ -123,7 +125,7 @@ export default function planningScreen() {
           return;
         }
 
-        const response = await fetch("https://api.ehb-match.me/speeddates", {
+        const response = await fetch("https://api.ehb-match.me/speeddates/accepted", {
           method: "GET",
           headers: {
             Authorization: `Bearer ${token}`,
@@ -145,6 +147,7 @@ export default function planningScreen() {
     };
 
     fetchData();
+    isLoading(false);
     intervalId = setInterval(fetchData, 1000);
     return () => {
       if (intervalId) {
@@ -198,6 +201,10 @@ export default function planningScreen() {
           <ActivityIndicator
             size="small"
             color={theme === "dark" ? "#fff" : "#000"}
+            style={{opacity:
+              loading === false
+                ? 0
+                : 1,}}
           />
         </ThemedView>
       </ThemedView>
@@ -247,12 +254,19 @@ export default function planningScreen() {
             {loginConfirmed == true ? (
               <TouchableOpacity
                 style={{ alignItems: "center" }}
-                onPress={() => router.push("../vandaagPlanning")}
+                onPress={() => 
+                  router.push({
+                    pathname: "../vandaagPlanning",
+                    params: {
+                      speedDates: JSON.stringify(speeddates)
+                     },
+                  })
+                }
                 >
-                  <Text style={{ color: "#3395FF", marginTop: 10, fontSize: 16 }}>
-                    Bekijk meer
-                  </Text>
-                </TouchableOpacity>
+                <Text style={{ color: "#3395FF", marginTop: 10, fontSize: 16 }}>
+                  Bekijk meer
+                </Text>
+              </TouchableOpacity>
               ) : (
                 <LoginError />
               )}
@@ -267,11 +281,10 @@ export default function planningScreen() {
 
 const DateBoxStyles = StyleSheet.create({
   BoxDesign: {
-    borderWidth: 1,
+    borderWidth: 0,
     borderRadius: 19,
-    width: 350,
-    paddingVertical: 10,
-    marginTop: 160
+    width: 380,
+    marginTop: 130
   },
   container: {
     alignItems: 'center',

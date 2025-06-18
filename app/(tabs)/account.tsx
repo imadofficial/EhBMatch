@@ -618,11 +618,11 @@ export default function AccountScreen() {
 
       <ThemedText style={{ textAlign: 'center', fontSize: 15, opacity: 0.9 }}>
         Onze{' '}
-        <ExternalLink href="https://example.com/gebruiksvoorwaarden" style={{ color: '#007bff' }}>
-          gebruiksvoorwaarden
+        <ExternalLink href="https://ehb-match.me/privacy" style={{ color: '#007bff' }}>
+          Privacy Policy
         </ExternalLink>{' '}
         &{' '}
-        <ExternalLink href={"https://example.com/gdpr"} style={{ color: '#007bff' }}>
+        <ExternalLink href={"https://europa.eu/youreurope/business/dealing-with-customers/data-protection/data-protection-gdpr/index_nl.htm"} style={{ color: '#007bff' }}>
           GDPR-wetten
         </ExternalLink>{' '}
         zijn van toepassing.

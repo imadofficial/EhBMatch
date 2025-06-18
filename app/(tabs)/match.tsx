@@ -1,10 +1,10 @@
 import { Image } from 'expo-image';
-import { ActivityIndicator, Dimensions, StyleSheet, Text, TouchableOpacity, useColorScheme } from 'react-native';
+import { ActivityIndicator, Dimensions, RefreshControl, StyleSheet, Text, TouchableOpacity, useColorScheme } from 'react-native';
 
 import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
 import { BottomSheetModal, BottomSheetView } from '@gorhom/bottom-sheet';
-import { useRouter } from 'expo-router';
+import { useFocusEffect, useRouter } from 'expo-router';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { ScrollView } from 'react-native-gesture-handler';
 import { Float } from 'react-native/Libraries/Types/CodegenTypes';
@@ -74,27 +74,26 @@ export default function HomeScreen() {
   const [bedrijven, setBedrijven] = useState([]);
   const [selectedBedrijf, setSelectedBedrijf] = useState([]);
   const [bedrijfsNaam, setBedrijfsnaam] = useState([]);
+  const [refreshing, setRefreshing] = useState(false);
+  const [loading, isLoading] = useState(true);
 
   const router = useRouter();
+  const colorScheme = useColorScheme();
 
   const bottomSheetModalRef = useRef<BottomSheetModal>(null);
   const handlePresentModalPress = useCallback(() => {
     bottomSheetModalRef.current?.present();
   }, []);
-
   const handleDismissal = useCallback(() => {
     bottomSheetModalRef.current?.dismiss();
   }, []);
   const snapPoints = useMemo(() => ['25%'], []);
 
-
-  const colorScheme = useColorScheme();
-
-  useEffect(() => {
-  const fetchData = async () => {
+  const fetchData = useCallback(async () => {
+    isLoading(true)
     try {
       const token = await ValidateToken();
-      const response = await fetch('https://api.ehb-match.me/discover/bedrijven?onlyNew=false', {
+      const response = await fetch('https://api.ehb-match.me/discover/bedrijven?onlyNew=true', {
         method: 'GET',
         headers: {
           Authorization: `Bearer ${token}`,
@@ -107,46 +106,90 @@ export default function HomeScreen() {
     } catch (error) {
       console.log('Error fetching data:', error);
     }
-  };
 
-  fetchData();
-}, []);
+    isLoading(false)
+  }, []);
 
-  const theme = useColorScheme();
+  useEffect(() => {
+    fetchData();
+  }, [fetchData]);
+
+  useFocusEffect(
+    useCallback(() => {
+      fetchData()
+    }, [])
+  );
+
+  const onRefresh = useCallback(async () => {
+    console.log("Refreshing...")
+    setRefreshing(true);
+    await fetchData();
+    setRefreshing(false);
+  }, [fetchData]);
 
   return (
     <ThemedView style={{ flex: 1 }}>
-      <ThemedView style={[styles.headerContainer, { height: HEADER_HEIGHT, backgroundColor: theme === 'dark' ? 'rgba(20,20,20,0.95)' : 'rgba(255,255,255,0.95)', }]}>
+      <ThemedView
+        style={[
+          styles.headerContainer,
+          {
+            height: HEADER_HEIGHT,
+            backgroundColor:
+              colorScheme === 'dark'
+                ? 'rgba(20,20,20,0.95)'
+                : 'rgba(255,255,255,0.95)',
+          },
+        ]}
+      >
         <ThemedView style={styles.titleContainer}>
           <ThemedText type="title">Match</ThemedText>
           <ThemedText type="subtitle">Je bedrijf!</ThemedText>
         </ThemedView>
 
         <ThemedView style={styles.loaderContainer}>
-          <ActivityIndicator size="small" color={theme === 'dark' ? '#fff' : '#000'} />
+          <ActivityIndicator
+            size="small"
+            color={colorScheme === 'dark' ? '#fff' : '#000'}
+            style={{opacity:
+              loading === false
+                ? 0
+                : 1,}}
+          />
         </ThemedView>
       </ThemedView>
 
-      <ScrollView style={{ flex: 1 }} contentContainerStyle={{ paddingBottom: 40 }}>
+      <ScrollView
+        style={{ flex: 1 }}
+        contentContainerStyle={{ paddingBottom: 40 }}
+        refreshControl={
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={onRefresh}
+            colors={['#007AFF']}
+            tintColor={colorScheme === 'dark' ? '#fff' : '#000'}
+          />
+        }
+      >
         <ThemedView>
           <ThemedView style={DateBoxStyles.container}>
             <ThemedView style={[DateBoxStyles.marginWithBox]}>
-
               {bedrijven.map((info, index) => (
-                <TouchableOpacity onPress={() => {
-                  handlePresentModalPress();
-                  setSelectedBedrijf(info["gebruiker_id"]);
-                  setBedrijfsnaam(info["naam"])
-                }}>
+                <TouchableOpacity
+                  key={index}
+                  onPress={() => {
+                    handlePresentModalPress();
+                    setSelectedBedrijf(info["gebruiker_id"]);
+                    setBedrijfsnaam(info["naam"]);
+                  }}
+                >
                   <DateBox
-                    //key={index}
-                    bedrijfsNaam= { info["naam"]}
-                    kortBeschrijving= {info["plaats"]}
-                    logoURL= {info["profiel_foto_url"]}
-                    matchScore={parseFloat(info["match_percentage"])} />
+                    bedrijfsNaam={info["naam"]}
+                    kortBeschrijving={info["plaats"]}
+                    logoURL={info["profiel_foto_url"]}
+                    matchScore={parseFloat(info["match_percentage"])}
+                  />
                 </TouchableOpacity>
               ))}
-
             </ThemedView>
           </ThemedView>
 
@@ -154,56 +197,77 @@ export default function HomeScreen() {
             ref={bottomSheetModalRef}
             index={1}
             snapPoints={snapPoints}
-            backgroundStyle={{ backgroundColor: colorScheme === 'dark' ? '#23201E' : '#F1EFEB' }}
+            backgroundStyle={{
+              backgroundColor: colorScheme === 'dark' ? '#23201E' : '#F1EFEB',
+            }}
             handleIndicatorStyle={{ backgroundColor: 'gray' }}
+          >
+            <BottomSheetView
+              style={{
+                backgroundColor:
+                  colorScheme === 'dark' ? '#23201E' : '#F1EFEB',
+              }}
             >
-            <BottomSheetView style={
-              { backgroundColor: colorScheme === 'dark' ? '#23201E' : '#F1EFEB' }}>
-              <ThemedView style={{ backgroundColor: colorScheme === 'dark' ? '#23201E' : '#F1EFEB', paddingHorizontal: 25 }}>
-                <ThemedText type="title" adjustsFontSizeToFit numberOfLines={1}>{bedrijfsNaam}</ThemedText>
+              <ThemedView
+                style={{
+                  backgroundColor:
+                    colorScheme === 'dark' ? '#23201E' : '#F1EFEB',
+                  paddingHorizontal: 25,
+                }}
+              >
+                <ThemedText type="title" adjustsFontSizeToFit numberOfLines={1}>
+                  {bedrijfsNaam}
+                </ThemedText>
                 <ThemedText>Wat wil je doen met dit bedrijf?</ThemedText>
 
-                <ThemedView style={{ backgroundColor: colorScheme === 'dark' ? '#23201E' : '#F1EFEB', flexDirection: 'column', justifyContent: 'flex-end' }}>
-                <TouchableOpacity
-                  onPress={() => {
-                    router.push({
-                      pathname: '/dateAfspraak',
-                      params: {
-                        bedrijfID: selectedBedrijf,
-                        bedrijfNaam: bedrijfsNaam
-                      },
-                    });
-                    
-                    handleDismissal();
-                  }}
+                <ThemedView
                   style={{
-                    backgroundColor: '#007AFF',
-                    paddingVertical: 12,
-                    borderRadius: 8,
-                    marginTop: 16,
-                    alignItems: 'center',
+                    backgroundColor:
+                      colorScheme === 'dark' ? '#23201E' : '#F1EFEB',
+                    flexDirection: 'column',
+                    justifyContent: 'flex-end',
                   }}
-                  accessibilityLabel="Blauw afspraak aanmaak knop"
                 >
-                  <Text style={{ color: 'white' }}>Afspraak maken</Text>
-                </TouchableOpacity>
+                  <TouchableOpacity
+                    onPress={() => {
+                      router.push({
+                        pathname: '/dateAfspraak',
+                        params: {
+                          bedrijfID: selectedBedrijf,
+                          bedrijfNaam: bedrijfsNaam
+                        },
+                      });
+                      handleDismissal();
+                    }}
+                    style={{
+                      backgroundColor: '#007AFF',
+                      paddingVertical: 12,
+                      borderRadius: 8,
+                      marginTop: 16,
+                      alignItems: 'center',
+                    }}
+                    accessibilityLabel="Blauw afspraak aanmaak knop"
+                  >
+                    <Text style={{ color: 'white' }}>Afspraak maken</Text>
+                  </TouchableOpacity>
 
-                <TouchableOpacity
-                  onPress={() => {handleDismissal();}}
-                  style={{
-                    backgroundColor: '#D23042',
-                    paddingVertical: 12,
-                    borderRadius: 8,
-                    marginTop: 12,
-                    alignItems: 'center',
-                  }}
-                  accessibilityLabel="Rode annuleer knop"
-                >
-                  <Text style={{ color: 'white' }}>Annuleren</Text>
-                </TouchableOpacity>
+                  <TouchableOpacity
+                    onPress={() => {
+                      handleDismissal();
+                    }}
+                    style={{
+                      backgroundColor: '#D23042',
+                      paddingVertical: 12,
+                      borderRadius: 8,
+                      marginTop: 12,
+                      alignItems: 'center',
+                    }}
+                    accessibilityLabel="Rode annuleer knop"
+                  >
+                    <Text style={{ color: 'white' }}>Annuleren</Text>
+                  </TouchableOpacity>
                 </ThemedView>
-                </ThemedView>
-
+              </ThemedView>
             </BottomSheetView>
           </BottomSheetModal>
         </ThemedView>
@@ -211,6 +275,7 @@ export default function HomeScreen() {
     </ThemedView>
   );
 }
+
 
 const DateBoxStyles = StyleSheet.create({
   BoxDesign: {

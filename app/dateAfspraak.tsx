@@ -74,6 +74,14 @@ export function DateBox({ bedrijfsNaam, kortBeschrijving }: { bedrijfsNaam: stri
 export default function HomeScreen() {
   const navigation = useNavigation();
 
+  const theme = useColorScheme();
+  const borderColor = theme === 'dark' ? 'white' : 'black';
+  const roundedcornerBorderColor = theme === 'dark' ? 'white' : 'black';
+
+  const dropDowncolors = theme === 'dark' ? '#272727' : '#eee';
+  const dropDownBordercolors = theme === 'dark' ? 'gray' : '#ccc';
+
+
   const { bedrijfID, bedrijfNaam } = useLocalSearchParams<{ bedrijfID: string, bedrijfNaam: string }>();
   console.log(bedrijfNaam, bedrijfID);
   const router = useRouter();
@@ -83,9 +91,6 @@ export default function HomeScreen() {
   const [selectedTime, setSelectedTime] = useState<string | null>(null);
   const [dateDropdownVisible, setDateDropdownVisible] = useState(false);
   const [timeDropdownVisible, setTimeDropdownVisible] = useState(false);
-
-  const theme = useColorScheme();
-  const borderColor = theme === 'dark' ? 'white' : 'black';
 
   useEffect(() => {
     navigation.setOptions({ title: "Maak afspraak aan" });
@@ -176,15 +181,18 @@ export default function HomeScreen() {
 
   return (
     <ThemedView style={{ flex: 1 }}>
-      <ScrollView contentContainerStyle={{ padding: 20 }}>
+      <ScrollView contentContainerStyle={{ paddingHorizontal: 20 }}>
         <ThemedView style={[styles.box, { borderColor }]}>
           <ThemedText style={styles.title}>
-            Afspraak met: {bedrijfNaam}
+            Afspraak met
+          </ThemedText>
+          <ThemedText style={[styles.title, {fontSize: 22}]}>
+            {bedrijfNaam}
           </ThemedText>
 
         <ThemedView>
           <TouchableOpacity
-            style={styles.dropdown}
+            style={[styles.dropdown, {borderColor: roundedcornerBorderColor}]}
             onPress={() => setDateDropdownVisible(!dateDropdownVisible)}
           >
             <ThemedText>
@@ -195,21 +203,21 @@ export default function HomeScreen() {
             uniqueDates.map((date) => (
               <TouchableOpacity
                 key={date}
-                style={styles.dropdownOption}
+                style={[styles.dropdownOption, { backgroundColor: dropDowncolors, borderColor: dropDownBordercolors }]}
                 onPress={() => {
                   setSelectedDate(date);
                   setSelectedTime(null);
                   setDateDropdownVisible(false);
                 }}
               >
-                <ThemedText>{date}</ThemedText>
+                <ThemedText style={{color: borderColor}}>{date}</ThemedText>
               </TouchableOpacity>
             ))}
 
           {selectedDate && (
             <ThemedView>
               <TouchableOpacity
-                style={styles.dropdown}
+                style={[styles.dropdown, {borderColor: roundedcornerBorderColor}]}
                 onPress={() => setTimeDropdownVisible(!timeDropdownVisible)}
               >
                 <ThemedText>
@@ -220,13 +228,13 @@ export default function HomeScreen() {
                 timesForDate.map((time) => (
                   <TouchableOpacity
                     key={time}
-                    style={styles.dropdownOption}
+                    style={[styles.dropdownOption, { backgroundColor: dropDowncolors, borderColor: dropDownBordercolors }]}
                     onPress={() => {
                       setSelectedTime(time);
                       setTimeDropdownVisible(false);
                     }}
                   >
-                    <ThemedText>{time}</ThemedText>
+                    <ThemedText style={{color: borderColor}}>{time}</ThemedText>
                   </TouchableOpacity>
                 ))}
             </ThemedView>
@@ -238,6 +246,10 @@ export default function HomeScreen() {
           </View>
         </ThemedView>
       </ScrollView>
+
+      <ThemedView style={{paddingHorizontal: 20, paddingBottom: 30}}>
+        <ThemedText style={{color: borderColor, textAlign: 'center', opacity: 0.65, fontSize: 14}}>Door een afspraak te maken, accepteer je onze voorwaarden & dat Groep 2 op de 2e plaats is.</ThemedText>
+      </ThemedView>
     </ThemedView>
   );
 }
@@ -300,9 +312,7 @@ const styles = StyleSheet.create({
   },
   dropdownOption: {
     padding: 12,
-    backgroundColor: '#eee',
     borderBottomWidth: 1,
-    borderColor: '#ccc',
   },
 });
 
