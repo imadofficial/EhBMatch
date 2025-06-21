@@ -129,7 +129,8 @@ export default function HomeScreen() {
       weekday: 'long',
       day: 'numeric',
       month: 'long',
-    });
+    }
+  );
     
   const router = useRouter();
 

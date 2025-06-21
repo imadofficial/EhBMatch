@@ -50,8 +50,10 @@ export const NotificationProvider: React.FC<NotificationProviderProps> = ({ chil
       console.log("✅ Got push token:", token);
       setExpoPushToken(token);
       syncToken(token);
+      //Alert.alert('Token Generated', token.toString())
     },
     (error) => {
+      //Alert.alert('Token NOT Generated', error.toString());
       console.error("❌ Failed to register:", error);
       setError(error);
     }

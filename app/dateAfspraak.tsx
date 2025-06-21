@@ -13,8 +13,6 @@ import {
 import { ScrollView } from 'react-native-gesture-handler';
 import { ValidateToken } from './(tabs)/account';
 
-
-
 type SpeeddatesSlot = {
   begin: string;
   einde: string;

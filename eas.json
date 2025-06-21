@@ -9,12 +9,13 @@
       "distribution": "internal"
     },
     "preview": {
-      "distribution": "internal"
+      "distribution": "internal",
+      "developmentClient": true
     },
     "production": {
       "autoIncrement": true,
-      "developmentClient": false,
-      "distribution": "store",
+      "developmentClient": true,
+      "distribution": "internal",
       "ios": {
         "simulator": false
       }

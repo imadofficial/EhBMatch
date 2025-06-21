@@ -1,10 +1,10 @@
 import { Image } from 'expo-image';
-import { ActivityIndicator, Dimensions, StyleSheet, Text, TouchableOpacity, useColorScheme } from 'react-native';
+import { ActivityIndicator, Dimensions, RefreshControl, StyleSheet, TouchableOpacity, useColorScheme } from 'react-native';
 
 import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
 import { useRouter } from 'expo-router';
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { ScrollView } from 'react-native-gesture-handler';
 import { getKeyValueStore, ValidateToken } from './account';
 
@@ -26,7 +26,7 @@ export function DateBox({ bedrijfsNaam, kortBeschrijving, logoURL, Lokaal, Tijds
   var time = d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
 
   return (
-    <ThemedView style={{ paddingHorizontal: 15, paddingTop: 10, paddingBottom: 10, borderRadius: 20 }}>
+    <ThemedView style={{ paddingTop: 10, paddingBottom: 10, borderRadius: 20 }}>
       <ThemedView
         style={{
           flexDirection: 'row',
@@ -46,7 +46,7 @@ export function DateBox({ bedrijfsNaam, kortBeschrijving, logoURL, Lokaal, Tijds
           />
 
           <ThemedView style={{ paddingLeft: 10 }}>
-            <ThemedText type="subtitle" style={{width: 195}} adjustsFontSizeToFit numberOfLines={1} >{bedrijfsNaam}</ThemedText>
+            <ThemedText type="subtitle" style={{width: 220}} adjustsFontSizeToFit numberOfLines={1} >{bedrijfsNaam}</ThemedText>
             <ThemedText type="defaultSemiBold">{kortBeschrijving}</ThemedText>
           </ThemedView>
         </ThemedView>
@@ -105,63 +105,92 @@ export default function planningScreen() {
   const [speeddates, setSpeeddates] = useState<SpeedDate[]>([]);
   const [loginConfirmed, setLoginConfirmed] = useState(false);
   const [loading, isLoading] = useState(true);
+  const [pendingSpeedDate, setPendingSpeedDates] = useState([]);
+  const [refreshing, setRefreshing] = useState(false);
+
+  const fetchData = async () => {
+    try {
+      const key = await getKeyValueStore("Token", "WholeLoadaShit");
+
+      if (key === "WholeLoadaShit") {
+        //console.log("Token still invalid, retrying in 1 second...");
+        setLoginConfirmed(false);
+        setTimeout(fetchData, 1000);
+        return;
+      }
+
+      const token = await ValidateToken();
+      if (token === "WholeLoadaShit") {
+        //console.log("Token still invalid, retrying in 1 second...");
+        setLoginConfirmed(false);
+        setTimeout(fetchData, 1000);
+        return;
+      }
+
+      const response = await fetch("https://api.ehb-match.me/speeddates/accepted", {
+        method: "GET",
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+      });
+
+      const data = await response.json();
+      setSpeeddates(data);
+      setLoginConfirmed(true);
+    } catch (error) {
+      console.log("Error fetching data:", error);
+    }
+  };
+
+
+const fetchPending = async () => {
+  try {
+    const token = await ValidateToken();
+    const response = await fetch('https://api.ehb-match.me/speeddates/pending', {
+        method: 'GET',
+        headers: {
+          Authorization: `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+      }
+    );
+    const data = await response.json();
+    setPendingSpeedDates(data);
+  } catch (error) {
+    console.error('Error fetching pending data:', error);
+  }
+};
 
   useEffect(() => {
     isLoading(true);
-    let intervalId: number | null = null;
-
-    const fetchData = async () => {
-      try {
-        const key = await getKeyValueStore("Token", "WholeLoadaShit");
-
-        if (key === "WholeLoadaShit") {
-          console.log("Token still invalid, retrying in 1 second...");
-          return;
-        }
-
-        const token = await ValidateToken();
-        if (token === "WholeLoadaShit") {
-          console.log("Token still invalid, retrying in 1 second...");
-          return;
-        }
-
-        const response = await fetch("https://api.ehb-match.me/speeddates/accepted", {
-          method: "GET",
-          headers: {
-            Authorization: `Bearer ${token}`,
-            "Content-Type": "application/json",
-          },
-        });
-
-        const data = await response.json();
-        setSpeeddates(data);
-        
-        if (intervalId) {
-          clearInterval(intervalId);
-        }
-
-        setLoginConfirmed(true);
-      } catch (error) {
-        console.log("Error fetching data:", error);
-      }
+    
+    const init = async () => {
+      await fetchData();
+      await fetchPending();
+      isLoading(false);
     };
 
-    fetchData();
-    isLoading(false);
-    intervalId = setInterval(fetchData, 1000);
-    return () => {
-      if (intervalId) {
-        clearInterval(intervalId);
-      }
-    };
+    init();
+
+    // No interval needed
   }, []);
 
 
+  const onRefresh = useCallback(async () => {
+    console.log("Refreshing...");
+    isLoading(true);
+    await fetchData();
+    isLoading(false);
+  }, []);
+
   const theme = useColorScheme();
+  
   const borderColor = theme === "dark" ? "white" : "black";
+  const colorScheme = useColorScheme();
 
   const events = speeddates.map((date) => ({
-      ...date, //Spread Operator
+      ...date,
       beginDate: new Date(date.begin),
     })).sort((a, b) => a.beginDate.getTime() - b.beginDate.getTime());
 
@@ -174,10 +203,9 @@ export default function planningScreen() {
 
   const groupedDates = Object.keys(grouped)
     .sort((a, b) => new Date(a).getTime() - new Date(b).getTime())
-    .slice(0, 2);
 
   const formatDate = (date: Date): string => date.toLocaleDateString("nl-NL", { weekday: "long", day: "numeric", month: "long" });
-
+    
   return (
     <ThemedView style={{ flex: 1 }}>
       <ThemedView
@@ -209,10 +237,42 @@ export default function planningScreen() {
         </ThemedView>
       </ThemedView>
 
-      <ScrollView style={{ flex: 1 }} contentContainerStyle={{ paddingBottom: 70 }}>
+      <ScrollView style={{ flex: 1 }} contentContainerStyle={{ paddingBottom: 70 }} refreshControl={
+                <RefreshControl
+                  refreshing={refreshing}
+                  onRefresh={onRefresh}
+                  colors={['#007AFF']}
+                  tintColor={colorScheme === 'dark' ? '#fff' : '#000'}
+                />
+              }>
         <ThemedView>
           <ThemedView style={DateBoxStyles.container}>
             <ThemedView style={[DateBoxStyles.BoxDesign, { borderColor }]}>
+
+              <ThemedView style={{}}>
+                <TouchableOpacity
+                  onPress={() => 
+                    router.push({
+                      pathname: "./inAfwachting",
+                        params: {
+                          pendingDates: JSON.stringify(pendingSpeedDate)
+                        },
+                      })
+                    }
+                  >
+                    <ThemedView
+                      style={[
+                          DateBoxStyles["BoxDesign"],
+                        { borderColor, backgroundColor: 'orange', height: 40, justifyContent: 'center' },
+                      ]}
+                    >
+                    <ThemedText style={{ textAlign: 'center', color: 'black' }}>
+                      Je hebt momenteel {pendingSpeedDate["length"]} dates in afwachting
+                    </ThemedText>
+                  </ThemedView>
+                </TouchableOpacity>
+              </ThemedView>
+
               {groupedDates.map((dateKey) => {
                 const dateGroup = grouped[dateKey];
                 const title = formatDate(new Date(dateKey));
@@ -252,21 +312,8 @@ export default function planningScreen() {
               })}
 
             {loginConfirmed == true ? (
-              <TouchableOpacity
-                style={{ alignItems: "center" }}
-                onPress={() => 
-                  router.push({
-                    pathname: "../vandaagPlanning",
-                    params: {
-                      speedDates: JSON.stringify(speeddates)
-                     },
-                  })
-                }
-                >
-                <Text style={{ color: "#3395FF", marginTop: 10, fontSize: 16 }}>
-                  Bekijk meer
-                </Text>
-              </TouchableOpacity>
+              <ThemedView>
+                </ThemedView>
               ) : (
                 <LoginError />
               )}
@@ -283,8 +330,8 @@ const DateBoxStyles = StyleSheet.create({
   BoxDesign: {
     borderWidth: 0,
     borderRadius: 19,
-    width: 380,
-    marginTop: 130
+    width: 350,
+    marginTop: 75
   },
   container: {
     alignItems: 'center',

@@ -1,15 +1,20 @@
+import { Picker } from '@react-native-picker/picker';
 import { Image } from 'expo-image';
 import * as SecureStore from 'expo-secure-store';
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { Linking, StyleSheet, TextInput, TouchableHighlight, TouchableOpacity, useColorScheme } from 'react-native';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { Alert, Linking, StyleSheet, Text, TextInput, TouchableHighlight, TouchableOpacity, useColorScheme, View } from 'react-native';
 
 import { ExternalLink } from '@/components/ExternalLink';
 import ParallaxScrollView from '@/components/ParallaxScrollView';
 import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
 import { IconSymbol } from '@/components/ui/IconSymbol';
+import * as ImageManipulator from 'expo-image-manipulator';
+import * as ImagePicker from 'expo-image-picker';
+import Modal from 'react-native-modal';
 
 import {
+  BottomSheetBackdrop,
   BottomSheetModal,
   BottomSheetView
 } from '@gorhom/bottom-sheet';
@@ -80,8 +85,8 @@ export const getUserID = async () => {
 };
 
 const openLinkedInProfile = async (username: String) => {
-  const appUrl = 'linkedin://in/' + username; // Only opens if the app is already installed on the device
-  const webUrl = 'https://www.linkedin.com/in/' + username;
+  const appUrl = 'linkedin://' + username; // Only opens if the app is already installed on the device
+  const webUrl = 'https://www.linkedin.com' + username;
 
   const supported = await Linking.canOpenURL(appUrl);
 
@@ -128,13 +133,23 @@ function LoginMessage() {
 
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [voornaam, setVoornaam] = useState('');
+  const [achternaam, setAchternaam] = useState('');
+  const [linkedIn, setLinkedin] = useState('');
 
   const [isLoading, setIsLoading] = useState(false);
   const [message, setMessage] = useState('');
+  const [studiejaar, setStudiejaar] = useState(1);
+  const [picture, setPicture] = useState('https://winaero.com/blog/wp-content/uploads/2015/05/user-200.png');
+
+  const [DD, setDD] = useState("");
+  const [MM, setMM] = useState("");
+  const [YYYY, setYYYY] = useState("");
+
 
   const [opleidingen, setOpleidingen] = useState<Opleidingen[]>([]);
-  const [opleidingID, setOpleidingID] = useState(null);
-
+  const [selectedId, setSelectedId] = useState();
+  const [isPickerVisible, setPickerVisible] = useState(false);
 
   useEffect(() => {
     const fetchOpleidingen = async () => {
@@ -153,13 +168,7 @@ function LoginMessage() {
         }
 
         const data = await response.json();
-
-        const formattedData = data.map((item: Opleidingen) => ({
-          label: item.naam,
-          value: item.id,
-        }));
-
-        setOpleidingen(formattedData);
+        setOpleidingen(data);
 
         console.log('Parsed response:', data);
       } catch (error) {
@@ -169,6 +178,75 @@ function LoginMessage() {
 
     fetchOpleidingen();
   }, []); 
+
+  const StartRegistration = async () => {
+    try {
+      const uploading = await uploadImage(picture);
+      if (uploading != null) {
+        setPicture(uploading["profiel_foto_key"]);
+      }
+
+      const response = await fetch('https://api.ehb-match.me/auth/register/student', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          email: email,
+          password: password,
+          voornaam: voornaam,
+          achternaam: achternaam,
+          linkedin: linkedIn,
+          profiel_foto: picture,
+          studiejaar: studiejaar,
+          opleiding_id: selectedId,
+          date_of_birth: `${YYYY}-${MM}-${DD}`
+        }),
+      });
+
+      const data = await response.json();  // Read response once
+      console.log('Response data:', data);
+
+      if (!response.ok) {
+        throw new Error(data.message || 'Registration failed');
+      }
+
+      Alert.alert('Registratie succesvol!', 'Je kunt nu inloggen met je nieuwe account.')
+      console.log('Registration successful:', data);
+
+    } catch (error) {
+      console.error('Error registering:', error);
+    }
+  };
+
+  const selectpfp = async () => {
+    const permissionResult = await ImagePicker.requestMediaLibraryPermissionsAsync();
+    if (!permissionResult.granted) {
+      Alert.alert('Permission to access media library is required!');
+      return;
+    }
+
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      allowsEditing: true,
+      aspect: [1, 1],
+      quality: 1,
+      selectionLimit: 1,
+    });
+
+    if (!result.canceled && result.assets?.length > 0) {
+      const uri = result.assets[0].uri;
+
+      const manipulatedImage = await ImageManipulator.manipulateAsync(
+        uri,
+        [{ resize: { width: 400, height: 400 } }],
+        { compress: 1, format: ImageManipulator.SaveFormat.PNG }
+      );
+
+      setPicture(manipulatedImage.uri);
+      console.log('Selected image URI:', manipulatedImage.uri);
+    }
+  };
 
   const StartAuth = async () => {
     setIsLoading(true);
@@ -190,8 +268,9 @@ function LoginMessage() {
       if (!response.ok) {
         setIsLoading(false);
         setMessage("Login gegevens incorrect.")
+      }else{
+        return response.json();
       }
-      return response.json();
     })
     .then(async data => {
       setIsLoading(false);
@@ -215,6 +294,41 @@ function LoginMessage() {
 
   const colorScheme = useColorScheme();
   const snapPoints = useMemo(() => ['90%'], []);
+
+  const uploadImage = async (uri: string) => {
+    const filename = uri.split('/').pop() ?? 'photo.jpg';
+    const match = /\.(\w+)$/.exec(filename);
+    const type = match ? `image/${match[1]}` : `image/jpeg`;
+
+    const formData = new FormData();
+    formData.append('image', {
+      uri,
+      name: filename,
+      type,
+    } as any);
+
+    try {
+      const response = await fetch('https://api.ehb-match.me/profielfotos', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+        body: formData,
+      });
+
+      if (!response.ok) {
+        const text = await response.text();
+        console.error('Upload failed:', text);
+        return;
+      }
+
+      const data = await response.json();
+      console.log('Upload success:', data);
+      return data;
+    } catch (error) {
+      return null
+    }
+  };
 
   return (
     <ThemedView>
@@ -240,6 +354,14 @@ function LoginMessage() {
       ref={bottomSheetModalRef}
       index={1}
       onChange={handleSheetChanges}
+      backdropComponent={(props) => (
+        <BottomSheetBackdrop
+          {...props}
+          disappearsOnIndex={-1}
+          appearsOnIndex={0}
+          opacity={0.5}
+        />
+      )}
       snapPoints={snapPoints}
       backgroundStyle={{ backgroundColor: colorScheme === 'dark' ? '#23201E' : '#F1EFEB' }}
       handleIndicatorStyle={{ backgroundColor: 'gray' }}
@@ -251,7 +373,7 @@ function LoginMessage() {
       ]}>
         <ThemedView style={{ backgroundColor: colorScheme === 'dark' ? '#23201E' : '#F1EFEB' }}>
           <ThemedText type="title">Log in</ThemedText>
-          <ThemedText>Join the network by logging in.</ThemedText>
+          <ThemedText>Word lid van het netwerk door in te loggen.</ThemedText>
 
           <TextInput
             style={[sheets.input, {backgroundColor: '#F1EFEB'}]}
@@ -296,6 +418,14 @@ function LoginMessage() {
       index={1}
       onChange={handleSheetChanges}
       snapPoints={snapPoints}
+      backdropComponent={(props) => (
+        <BottomSheetBackdrop
+          {...props}
+          disappearsOnIndex={-1}
+          appearsOnIndex={0}
+          opacity={0.5}
+        />
+      )}
       backgroundStyle={{ backgroundColor: colorScheme === 'dark' ? '#23201E' : '#F1EFEB' }}
       handleIndicatorStyle={{ backgroundColor: 'gray' }}
     >
@@ -308,6 +438,13 @@ function LoginMessage() {
           <ThemedText type="title">Maak een account aan!</ThemedText>
           <ThemedText>Word lid van het netwerk door aan te melden.</ThemedText>
 
+          <TouchableOpacity
+          onPress={selectpfp}
+          style={{alignItems: 'center', paddingTop: 10}}
+          >
+            <Image source={{ uri: picture }} style={styles.profileImg} />
+          </TouchableOpacity>
+          
           <TextInput
             style={[sheets.input, {backgroundColor: '#F1EFEB'}]}
             placeholder="E-Mail"
@@ -332,8 +469,8 @@ function LoginMessage() {
             placeholder="Voornaam"
             keyboardType="email-address"
             autoComplete="email"
-            value={email}
-            onChangeText={setEmail}
+            value={voornaam}
+            onChangeText={setVoornaam}
           />
 
           <TextInput
@@ -341,17 +478,102 @@ function LoginMessage() {
             placeholder="Achternaam"
             keyboardType="email-address"
             autoComplete="email"
-            value={email}
-            onChangeText={setEmail}
+            value={achternaam}
+            onChangeText={setAchternaam}
+          />
+
+         <View style={{ flexDirection: 'row' }}>
+          <TextInput
+            style={[sheets.input2, { backgroundColor: '#F1EFEB' }]}
+            placeholder="Studiejaar"
+            keyboardType="numeric"
+            value={studiejaar.toString()}
+            onChangeText={text => setStudiejaar(Number(text))}
+          />
+
+          <TouchableOpacity
+            style={[sheets.input2, { justifyContent: 'center', backgroundColor: '#F1EFEB' }]}
+            onPress={() => setPickerVisible(true)}
+            activeOpacity={0.7}
+          >
+            <Text style={{ color: selectedId ? '#000' : '#888' }}>
+              {selectedId
+                ? (() => {
+                    const o = opleidingen.find(o => o.id === selectedId);
+                    return o ? `${o.naam} (${o.type})` : 'Opleiding';
+                  })()
+                : 'Opleiding'}
+            </Text>
+          </TouchableOpacity>
+
+          <Modal
+            isVisible={isPickerVisible}
+            onBackdropPress={() => setPickerVisible(false)}
+            style={{ justifyContent: 'flex-end', margin: 0 }}
+          >
+            <View style={{ backgroundColor: '#fff', borderTopLeftRadius: 16, borderTopRightRadius: 16, padding: 16 }}>
+              <Picker
+                selectedValue={selectedId}
+                onValueChange={(itemValue) => {
+                  setSelectedId(itemValue);
+                  setPickerVisible(false);
+                }}
+              >
+                <Picker.Item label="Opleiding" value={undefined} />
+                  {opleidingen.map((opleiding) => (
+                    <Picker.Item
+                      key={opleiding.id}
+                      label={`${opleiding.naam} (${opleiding.type})`}
+                      value={opleiding.id}
+                    />
+                  ))}
+              </Picker>
+            </View>
+          </Modal>
+        </View>
+
+          <ThemedText style={{ textAlign: 'center', marginVertical: 10, color: '#888' }}>
+              Geboortedatum (in DD-MM-YYYY)
+          </ThemedText>  
+         <View style={{ flexDirection: 'row' }}>
+          <TextInput
+            style={[sheets.input3, { backgroundColor: '#F1EFEB' }]}
+            placeholder="DD"
+            value={DD}
+            onChangeText={setDD}
+          />
+          <TextInput
+            style={[sheets.input3, { backgroundColor: '#F1EFEB' }]}
+            placeholder="MM"
+            keyboardType="numeric"
+            value={MM}
+            onChangeText={setMM}
+          />
+          <TextInput
+            style={[sheets.input3, { backgroundColor: '#F1EFEB' }]}
+            placeholder="YYYY"
+            keyboardType="numeric"
+            value={YYYY}
+            onChangeText={setYYYY}
+          />
+          </View>
+
+          <TextInput
+            style={[sheets.input, {backgroundColor: '#F1EFEB'}]}
+            placeholder="LinkedIn Profiel (/in/John)"
+            keyboardType="email-address"
+            autoComplete="email"
+            value={linkedIn}
+            onChangeText={setLinkedin}
           />
 
           <TouchableOpacity
             style={[styles.button, { marginTop: 20, marginHorizontal: 10 }]}
-            onPress={StartAuth}
+            onPress={StartRegistration}
             accessibilityLabel="Login button"
           >
             <ThemedText style={styles.buttonText}>
-              {isLoading ? "Logging in..." : "Inloggen"}
+              Meld aan
             </ThemedText>      
           </TouchableOpacity>
 
@@ -636,9 +858,25 @@ const sheets = StyleSheet.create({
     padding: 30
   },
   input: {
-    height: 60,
+    height: 50,
     margin: 10,
     width: 350,
+    borderWidth: 1,
+    padding: 15,
+    borderRadius: 10
+  },
+  input2: {
+    height: 50,
+    margin: 10,
+    width: 165,
+    borderWidth: 1,
+    padding: 15,
+    borderRadius: 10
+  },
+  input3: {
+    height: 50,
+    margin: 10,
+    width: 103,
     borderWidth: 1,
     padding: 15,
     borderRadius: 10

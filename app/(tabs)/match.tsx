@@ -1,13 +1,13 @@
 import { Image } from 'expo-image';
-import { ActivityIndicator, Dimensions, RefreshControl, StyleSheet, Text, TouchableOpacity, useColorScheme } from 'react-native';
+import { ActivityIndicator, Dimensions, RefreshControl, StyleSheet, Text, TouchableOpacity, useColorScheme, View } from 'react-native';
 
 import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
-import { BottomSheetModal, BottomSheetView } from '@gorhom/bottom-sheet';
+import { BottomSheetBackdrop, BottomSheetModal, BottomSheetView } from '@gorhom/bottom-sheet';
 import { useFocusEffect, useRouter } from 'expo-router';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { ScrollView } from 'react-native-gesture-handler';
-import { Float } from 'react-native/Libraries/Types/CodegenTypes';
+import { Float, Int32 } from 'react-native/Libraries/Types/CodegenTypes';
 import { ValidateToken } from './account';
 
 const screenHeight = Dimensions.get('window').height;
@@ -72,7 +72,7 @@ const HEADER_HEIGHT = 90;
 
 export default function HomeScreen() {
   const [bedrijven, setBedrijven] = useState([]);
-  const [selectedBedrijf, setSelectedBedrijf] = useState([]);
+  const [selectedBedrijf, setSelectedBedrijf] = useState(0);
   const [bedrijfsNaam, setBedrijfsnaam] = useState([]);
   const [refreshing, setRefreshing] = useState(false);
   const [loading, isLoading] = useState(true);
@@ -87,13 +87,51 @@ export default function HomeScreen() {
   const handleDismissal = useCallback(() => {
     bottomSheetModalRef.current?.dismiss();
   }, []);
-  const snapPoints = useMemo(() => ['25%'], []);
+  const snapPoints = useMemo(() => ['36%'], []);
+  
+  const [companyData, setCompanyData] = useState([]); //functie
+  const [opleidingData, setOpleidingData] = useState([]);
+  const [technischeKennis, setTechnischeKennis] = useState([]);
+  const [loginConfirmed, setLoginConfirmed] = useState(false);
+
+  const getCompanyData = async (companyID: Int32, endpoint: string) => {
+    try {
+      const token = await ValidateToken();
+      const response = await fetch(`https://api.ehb-match.me/bedrijven/${companyID}/${endpoint}`, {
+        method: 'GET',
+        headers: {
+          Authorization: `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        }
+      });
+
+      const data = await response.json();
+      console.log(data)
+      return data
+    } catch (error) {
+        console.log('Error fetching data:', error);
+    }
+  };
+
+  useEffect(() => {
+    async function fetchData() {
+      if (!selectedBedrijf) return;
+      const data = await getCompanyData(selectedBedrijf, 'functies');
+      const opleiding = await getCompanyData(selectedBedrijf, 'opleidingen');
+      const technischeKennis = await getCompanyData(selectedBedrijf, 'skills');
+      setCompanyData(data);
+      setOpleidingData(opleiding["opleidingen"])
+      setTechnischeKennis(technischeKennis)
+    }
+
+    fetchData();
+  }, [selectedBedrijf]);
 
   const fetchData = useCallback(async () => {
     isLoading(true)
     try {
       const token = await ValidateToken();
-      const response = await fetch('https://api.ehb-match.me/discover/bedrijven?onlyNew=true', {
+      const response = await fetch('https://api.ehb-match.me/discover/bedrijven?onlyNew=false', {
         method: 'GET',
         headers: {
           Authorization: `Bearer ${token}`,
@@ -103,7 +141,9 @@ export default function HomeScreen() {
 
       const data = await response.json();
       setBedrijven(data);
+      setLoginConfirmed(true)
     } catch (error) {
+      setLoginConfirmed(false)
       console.log('Error fetching data:', error);
     }
 
@@ -197,6 +237,14 @@ export default function HomeScreen() {
             ref={bottomSheetModalRef}
             index={1}
             snapPoints={snapPoints}
+            backdropComponent={(props) => (
+              <BottomSheetBackdrop
+                {...props}
+                disappearsOnIndex={-1}
+                appearsOnIndex={0}
+                opacity={0.5}
+              />
+            )}
             backgroundStyle={{
               backgroundColor: colorScheme === 'dark' ? '#23201E' : '#F1EFEB',
             }}
@@ -220,12 +268,71 @@ export default function HomeScreen() {
                 </ThemedText>
                 <ThemedText>Wat wil je doen met dit bedrijf?</ThemedText>
 
+              <View style={{ alignItems: 'center', paddingTop: 15 }}>
+                  <ThemedText style={{ textAlign: 'center', fontSize: 21, fontWeight: '700' }}>
+                    Functie
+                  </ThemedText>
+
+                <View style={{ flexDirection: 'row' }}>
+                  {companyData && companyData.length > 0 ? (
+                    companyData.map((item, index) => (
+                      <ThemedText key={index} style={{ marginBottom: 8, paddingHorizontal: 5 }}>
+                        {item["naam"]}
+                      </ThemedText>
+                    ))
+                  ) : (
+                    <ActivityIndicator />
+                  )}
+                </View>
+              </View>
+
+              <View style={{flexDirection: 'row', justifyContent: 'center', }}>
+                <View style={{ alignItems: 'center', paddingTop: 15 }}>
+                  
+                    <ThemedText style={{ textAlign: 'center', fontSize: 21, fontWeight: '700' }}>
+                      Opleidingen
+                    </ThemedText>
+
+                  <View style={{ flexDirection: 'row' }}>
+                    {opleidingData && opleidingData.length > 0 ? (
+                      opleidingData.map((item, index) => (
+                        <ThemedText key={index} style={{ marginBottom: 8, paddingHorizontal: 5 }}>
+                          {item["naam"]}
+                        </ThemedText>
+                      ))
+                    ) : (
+                      <ActivityIndicator />
+                    )}
+                  </View>
+                </View>
+
+                <View style={{ alignItems: 'center', paddingTop: 15, paddingLeft: 15 }}>
+                    <ThemedText style={{ textAlign: 'center', fontSize: 21, fontWeight: '700' }}>
+                      Skills
+                    </ThemedText>
+
+                  <View style={{ flexDirection: 'column', alignItems: 'center' }}>
+                    {technischeKennis && technischeKennis.length > 0 ? (
+                      technischeKennis.map((item, index) => (
+                        <ThemedText key={index} style={{ marginBottom: 8, paddingHorizontal: 5 }}>
+                          {item["naam"]}
+                        </ThemedText>
+                      ))
+                    ) : (
+                      <ActivityIndicator />
+                    )}
+                  </View>
+                </View>
+              </View>
+
+
                 <ThemedView
                   style={{
                     backgroundColor:
                       colorScheme === 'dark' ? '#23201E' : '#F1EFEB',
                     flexDirection: 'column',
                     justifyContent: 'flex-end',
+                    paddingBottom: 30,
                   }}
                 >
                   <TouchableOpacity
@@ -250,22 +357,6 @@ export default function HomeScreen() {
                   >
                     <Text style={{ color: 'white' }}>Afspraak maken</Text>
                   </TouchableOpacity>
-
-                  <TouchableOpacity
-                    onPress={() => {
-                      handleDismissal();
-                    }}
-                    style={{
-                      backgroundColor: '#D23042',
-                      paddingVertical: 12,
-                      borderRadius: 8,
-                      marginTop: 12,
-                      alignItems: 'center',
-                    }}
-                    accessibilityLabel="Rode annuleer knop"
-                  >
-                    <Text style={{ color: 'white' }}>Annuleren</Text>
-                  </TouchableOpacity>
                 </ThemedView>
               </ThemedView>
             </BottomSheetView>
@@ -276,12 +367,18 @@ export default function HomeScreen() {
   );
 }
 
+export function LoginError(){
+  return (
+    <ThemedView style={{ flex: 1, paddingHorizontal: 20, borderRadius: 20 }}>
+      <ThemedText type="subtitle">U bent momenteel niet ingelogd. Log in en probeer het opnieuw.</ThemedText>
+    </ThemedView>
+    )
+}
 
 const DateBoxStyles = StyleSheet.create({
   BoxDesign: {
     borderWidth: 1,
     borderRadius: 19,
-    width: 350,
     paddingVertical: 10
   },
   container: {
@@ -292,7 +389,7 @@ const DateBoxStyles = StyleSheet.create({
   },
   marginWithBox: {
     marginTop: 140,
-    width: 350,
+    width: 370,
   }
 });
 
